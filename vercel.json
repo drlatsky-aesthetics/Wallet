@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "functions": {
+    "api/generate-pass.js": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 10
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/generate-pass",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ]
+}
