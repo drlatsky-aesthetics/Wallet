@@ -81,7 +81,7 @@ export default async function handler(req, res) {
       continue;
     }
 
-    const passUrl = `${base}/wallet.html?member=${encodeURIComponent(`${firstName} ${lastName}`.trim())}`;
+    const passUrl = `${base}/api/generate-pass?member=${encodeURIComponent(`${firstName} ${lastName}`.trim())}`;
 
     try {
       const res2 = await fetch("https://api.resend.com/emails", {
