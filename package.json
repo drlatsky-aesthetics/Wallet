@@ -10,6 +10,7 @@
     "generate-images": "node scripts/generate-pass-images.js"
   },
   "dependencies": {
+    "@vercel/kv":       "^3.0.0",
     "passkit-generator": "^3.2.0"
   },
   "devDependencies": {

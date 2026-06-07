@@ -1,80 +1,74 @@
 // api/sync-passes.js
-// Vercel cron function — runs hourly, polls Phorest for new clients,
-// generates a personalised wallet pass and emails it to each new client.
+// Polls Phorest for clients, generates personalised wallet passes, emails them.
+// Triggered by: manual admin panel, or Vercel cron (when re-enabled in vercel.json).
 //
-// Cron schedule: 0 * * * *  (top of every hour)
-// Trigger:       GET /api/sync-passes  (Vercel invokes automatically)
+// Auth:
+//   Manual trigger  — Authorization: Bearer {CRON_SECRET}  (always allowed)
+//   Cron trigger    — must also have SYNC_ENABLED=true in Vercel env vars
 
+import { kv }               from "@vercel/kv";
 import { buildPassTemplate } from "../lib/pass-template.js";
-import { loadCertificates }  from "../lib/certificates.js";
-import { PKPass }            from "passkit-generator";
 import { readFileSync }      from "fs";
 import { join }              from "path";
 
 const PHOREST_BASE = "https://platform.phorest.com/third-party-api-server/api/business";
+const KV_SET_KEY   = "treasury:sent_client_ids";
 
-// ── Phorest helpers ───────────────────────────────────────────────────────────
+// ── Phorest ───────────────────────────────────────────────────────────────────
 
 function phorestAuth() {
-  const user = process.env.PHOREST_USERNAME;
-  const pass = process.env.PHOREST_PASSWORD;
-  return "Basic " + Buffer.from(`${user}:${pass}`).toString("base64");
+  return "Basic " + Buffer.from(
+    `${process.env.PHOREST_USERNAME}:${process.env.PHOREST_PASSWORD}`
+  ).toString("base64");
 }
 
-async function fetchNewClients(sinceISO) {
-  const bizId   = process.env.PHOREST_BUSINESS_ID;
-  const url     = `${PHOREST_BASE}/${bizId}/client?updatedAt=${sinceISO}&page=0&size=100`;
-  const res     = await fetch(url, { headers: { Authorization: phorestAuth(), Accept: "application/json" } });
-  if (!res.ok) throw new Error(`Phorest client fetch failed: ${res.status}`);
-  const data    = await res.json();
+async function fetchClients(sinceISO) {
+  const bizId = encodeURIComponent(process.env.PHOREST_BUSINESS_ID);
+  const url   = `${PHOREST_BASE}/${bizId}/client?updatedAt=${sinceISO}&page=0&size=200`;
+  const res   = await fetch(url, {
+    headers: { Authorization: phorestAuth(), Accept: "application/json" },
+  });
+  if (!res.ok) throw new Error(`Phorest fetch failed: ${res.status}`);
+  const data  = await res.json();
   return data?._embedded?.clients ?? [];
 }
 
-// ── Pass generation ───────────────────────────────────────────────────────────
+// ── Deduplication via Vercel KV ───────────────────────────────────────────────
 
-function loadPassImages() {
-  const dir  = join(process.cwd(), "assets", "pass");
-  const load = (f) => {
-    try { return readFileSync(join(dir, f)); } catch {
-      return Buffer.from(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-        "base64"
-      );
-    }
-  };
-  return {
-    "icon.png":    load("icon.png"),
-    "icon@2x.png": load("icon@2x.png"),
-    "icon@3x.png": load("icon@3x.png"),
-    "logo.png":    load("logo.png"),
-    "logo@2x.png": load("logo@2x.png"),
-  };
+async function getSentIds() {
+  try {
+    const ids = await kv.smembers(KV_SET_KEY);
+    return new Set(ids ?? []);
+  } catch {
+    console.warn("[Treasury] KV unavailable — deduplication skipped this run");
+    return new Set();
+  }
 }
 
-async function generatePassBuffer(client) {
-  const certificates = loadCertificates();
-  const passJson     = buildPassTemplate({
-    serialNumber: `treasury-${client.clientId}-${Date.now()}`,
-    targetUrl:    process.env.PASS_TARGET_URL || "https://treasuryhealth.ca",
-    memberName:   `${client.firstName} ${client.lastName}`.trim() || null,
-  });
-
-  const pass = new PKPass(
-    { "pass.json": Buffer.from(JSON.stringify(passJson, null, 2)), ...loadPassImages() },
-    certificates
-  );
-  return pass.getAsBuffer();
+async function markSent(clientId) {
+  try {
+    await kv.sadd(KV_SET_KEY, clientId);
+  } catch {
+    console.warn("[Treasury] KV write failed for client:", clientId);
+  }
 }
 
-// ── Resend email delivery ─────────────────────────────────────────────────────
+export async function getSentList() {
+  try {
+    return (await kv.smembers(KV_SET_KEY)) ?? [];
+  } catch {
+    return [];
+  }
+}
+
+// ── Email delivery ────────────────────────────────────────────────────────────
 
 async function sendPassEmail(client) {
   const firstName = client.firstName || "there";
-  const email     = client.email;
-  if (!email) return { skipped: true, reason: "no email" };
+  if (!client.email) return { skipped: true, reason: "no email" };
 
-  const baseUrl  = process.env.PASS_BASE_URL || `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
-  const passUrl  = `${baseUrl}/wallet.html?member=${encodeURIComponent(`${client.firstName} ${client.lastName}`.trim())}`;
+  const base    = process.env.PASS_BASE_URL || `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  const passUrl = `${base}/wallet.html?member=${encodeURIComponent(`${client.firstName} ${client.lastName}`.trim())}`;
 
   const res = await fetch("https://api.resend.com/emails", {
     method:  "POST",
@@ -84,16 +78,13 @@ async function sendPassEmail(client) {
     },
     body: JSON.stringify({
       from:    process.env.RESEND_FROM_EMAIL || "Treasury Aesthetics <hello@treasuryaesthetics.ca>",
-      to:      [email],
+      to:      [client.email],
       subject: "Your Treasury Aesthetics Loyalty Pass",
       html:    buildEmailHtml(firstName, passUrl),
     }),
   });
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Resend failed for ${email}: ${err}`);
-  }
+  if (!res.ok) throw new Error(`Resend failed for ${client.email}: ${await res.text()}`);
   return { sent: true };
 }
 
@@ -151,73 +142,54 @@ function buildEmailHtml(firstName, passUrl) {
 </html>`;
 }
 
-// ── State tracking via Vercel KV ──────────────────────────────────────────────
-// Uses SENT_PASS_IDS env var as a simple comma-separated list of client IDs
-// that have already received a pass. For larger volumes, swap for Vercel KV.
-
-function getSentIds() {
-  return new Set((process.env.SENT_PASS_IDS || "").split(",").filter(Boolean));
-}
-
-async function markSent(clientId, token, projectId, teamId) {
-  const current = process.env.SENT_PASS_IDS || "";
-  const updated = current ? `${current},${clientId}` : clientId;
-
-  await fetch(
-    `https://api.vercel.com/v10/projects/${projectId}/env?teamId=${teamId}&upsert=true`,
-    {
-      method:  "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body:    JSON.stringify({
-        key:    "SENT_PASS_IDS",
-        value:  updated,
-        type:   "encrypted",
-        target: ["production", "preview", "development"],
-      }),
-    }
-  );
-}
-
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
-  // Hard gate — must explicitly set SYNC_ENABLED=true in Vercel env vars before
-  // this function will send any emails. Prevents accidental production sends.
-  if (process.env.SYNC_ENABLED !== "true") {
-    return res.status(200).json({ status: "disabled", message: "Set SYNC_ENABLED=true in Vercel env vars to enable pass syncing." });
+  const secret       = process.env.CRON_SECRET;
+  const hasValidAuth = secret && req.headers["authorization"] === `Bearer ${secret}`;
+  const cronEnabled  = process.env.SYNC_ENABLED === "true";
+
+  // Manual admin trigger (valid secret) always allowed.
+  // Cron trigger (no auth header) only allowed when SYNC_ENABLED=true.
+  if (!hasValidAuth && !cronEnabled) {
+    return res.status(403).json({
+      error: "Not authorized. Use the admin panel or set SYNC_ENABLED=true for cron.",
+    });
   }
 
-  // Allow Vercel cron or manual GET trigger
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && req.headers["authorization"] !== `Bearer ${cronSecret}`) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-
-  const sinceHours = parseInt(req.query.hours || "1", 10);
-  const since      = new Date(Date.now() - sinceHours * 60 * 60 * 1000).toISOString();
+  // Look back further on manual triggers so the admin catches any gaps
+  const defaultHours = hasValidAuth ? 720 : 1; // 30 days manual, 1 hour cron
+  const sinceHours   = parseInt(req.query.hours ?? defaultHours, 10);
+  const since        = new Date(Date.now() - sinceHours * 60 * 60 * 1000).toISOString();
 
   try {
-    const clients = await fetchNewClients(since);
-    const sentIds = getSentIds();
-
+    const [clients, sentIds] = await Promise.all([fetchClients(since), getSentIds()]);
     const results = { sent: [], skipped: [], errors: [] };
 
     for (const client of clients) {
       const id = client.clientId;
-      if (sentIds.has(id)) { results.skipped.push({ id, reason: "already sent" }); continue; }
-      if (!client.email)   { results.skipped.push({ id, reason: "no email" });     continue; }
+
+      if (sentIds.has(id)) {
+        results.skipped.push({ id, name: `${client.firstName} ${client.lastName}`, reason: "already sent" });
+        continue;
+      }
+      if (!client.email) {
+        results.skipped.push({ id, name: `${client.firstName} ${client.lastName}`, reason: "no email" });
+        continue;
+      }
 
       try {
         await sendPassEmail(client);
-        await markSent(id, process.env.VERCEL_TOKEN, process.env.VERCEL_PROJECT_ID, process.env.VERCEL_TEAM_ID);
+        await markSent(id);
+        sentIds.add(id); // prevent duplicates within a single run
         results.sent.push({ id, name: `${client.firstName} ${client.lastName}`, email: client.email });
       } catch (err) {
-        results.errors.push({ id, error: err.message });
+        results.errors.push({ id, name: `${client.firstName} ${client.lastName}`, error: err.message });
       }
     }
 
     console.log("[Treasury Wallet] Sync complete:", results);
-    return res.status(200).json({ since, total: clients.length, ...results });
+    return res.status(200).json({ since, sinceHours, total: clients.length, ...results });
 
   } catch (err) {
     console.error("[Treasury Wallet] Sync failed:", err);
