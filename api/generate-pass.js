@@ -89,10 +89,9 @@ export default async function handler(req, res) {
 
     // 6 ── Stream back to client
     //      MIME type triggers the "Add to Wallet" sheet on iOS
-    res.setHeader("Content-Type",        "application/vnd.apple.pkpass");
-    res.setHeader("Content-Disposition", "inline; filename=treasury-aesthetics.pkpass");
-    res.setHeader("Content-Length",      pkpassBuffer.length);
-    res.setHeader("Cache-Control",       "no-store");
+    res.setHeader("Content-Type",   "application/vnd.apple.pkpass");
+    res.setHeader("Content-Length", pkpassBuffer.length);
+    res.setHeader("Cache-Control",  "no-store");
 
     return res.status(200).send(pkpassBuffer);
 
