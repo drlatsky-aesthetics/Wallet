@@ -348,20 +348,14 @@
     <div class="card-shine"></div>
   </div>
 
-  <!--
-    Apple Wallet button — points to the Vercel serverless function.
-    On iOS, the MIME type (application/vnd.apple.pkpass) triggers the
-    native "Add to Wallet" sheet automatically.
-  -->
-  <a class="wallet-btn" href="/api/generate-pass" id="wallet-btn">
-    <!-- Apple's official wallet icon (no badge image required in custom UI) -->
+  <a class="wallet-btn" href="/api/generate-pass" id="wallet-btn" onclick="addToWallet(event)">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
       <rect x="2" y="5" width="20" height="14" rx="3" stroke="#161614" stroke-width="1.8"/>
       <path d="M2 9h20" stroke="#161614" stroke-width="1.5"/>
       <circle cx="7" cy="14" r="1.5" fill="#161614"/>
       <rect x="10" y="13" width="7" height="2" rx="1" fill="#161614"/>
     </svg>
-    Add to Apple Wallet
+    <span id="wallet-btn-text">Add to Apple Wallet</span>
   </a>
 
   <!-- Secondary: copy link or open site -->
@@ -373,7 +367,7 @@
       </svg>
       Copy Link
     </button>
-    <button class="action-btn" onclick="window.open('https://treasuryhealth.ca','_blank')">
+    <button class="action-btn" onclick="window.open('https://treasuryaesthetics.ca','_blank')">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C9A55A" stroke-width="2">
         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
         <polyline points="15,3 21,3 21,9"/>
@@ -390,26 +384,46 @@
 </div>
 
 <script>
-  // Personalise QR and pass link if ?member= param provided
   const params = new URLSearchParams(window.location.search);
   const member = params.get("member");
-  if (member) {
-    document.getElementById("wallet-btn").href =
-      `/api/generate-pass?member=${encodeURIComponent(member)}`;
-  }
+  const passUrl = member
+    ? `/api/generate-pass?member=${encodeURIComponent(member)}`
+    : `/api/generate-pass`;
 
-  // Show Android note on non-iOS platforms
+  document.getElementById("wallet-btn").href = passUrl;
+
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isMac = /Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 0;
+
   if (!isIOS && !isMac) {
     document.getElementById("platform-note").textContent =
       "Apple Wallet is available on iPhone and Mac.";
     document.getElementById("wallet-btn").style.opacity = "0.6";
     document.getElementById("wallet-btn").style.cursor  = "default";
     document.getElementById("wallet-btn").removeAttribute("href");
+    document.getElementById("wallet-btn").removeAttribute("onclick");
   }
 
-  // Copy link
+  // Fetch the pass as a blob then navigate — more reliable on iOS than a raw link
+  async function addToWallet(e) {
+    e.preventDefault();
+    const btn     = document.getElementById("wallet-btn");
+    const label   = document.getElementById("wallet-btn-text");
+    label.textContent = "Loading…";
+    btn.style.opacity = "0.7";
+    try {
+      const resp = await fetch(passUrl);
+      if (!resp.ok) throw new Error(`Server error ${resp.status}`);
+      const blob   = await resp.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      window.location.href = blobUrl;
+    } catch (err) {
+      label.textContent = "Failed — try again";
+      btn.style.opacity = "1";
+      console.error(err);
+    }
+  }
+
   function copyLink() {
     const btn = document.getElementById("copy-btn");
     navigator.clipboard.writeText(window.location.href).then(() => {
