@@ -2,9 +2,7 @@
 // Sends wallet pass emails to a specific list of clients chosen in the admin panel.
 // POST body: { clients: [{ id, firstName, lastName, email }] }
 
-import { kv } from "@vercel/kv";
-
-const KV_SET_KEY = "treasury:sent_client_ids";
+import { markSent } from "../lib/kv.js";
 
 function buildEmailHtml(firstName, passUrl) {
   return `<!DOCTYPE html>
@@ -102,7 +100,7 @@ export default async function handler(req, res) {
 
       if (!res2.ok) throw new Error(await res2.text());
 
-      await kv.sadd(KV_SET_KEY, id).catch(() => {});
+      await markSent(id);
       results.sent.push({ id, name: `${firstName} ${lastName}`.trim(), email });
 
     } catch (err) {

@@ -2,10 +2,9 @@
 // Returns all Phorest clients for the given lookback window with their
 // pass-sent status from Vercel KV. No emails sent.
 
-import { kv } from "@vercel/kv";
+import { getSentList } from "../lib/kv.js";
 
 const PHOREST_BASE = "https://platform.phorest.com/third-party-api-server/api/business";
-const KV_SET_KEY   = "treasury:sent_client_ids";
 
 function phorestAuth() {
   return "Basic " + Buffer.from(
@@ -47,7 +46,7 @@ export default async function handler(req, res) {
   try {
     const [phorestClients, sentRaw] = await Promise.all([
       fetchAllClients(since),
-      kv.smembers(KV_SET_KEY).catch(() => []),
+      getSentList(),
     ]);
 
     const sentIds = new Set(sentRaw ?? []);

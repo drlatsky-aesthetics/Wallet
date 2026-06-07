@@ -404,24 +404,10 @@
     document.getElementById("wallet-btn").removeAttribute("onclick");
   }
 
-  // Fetch the pass as a blob then navigate — more reliable on iOS than a raw link
-  async function addToWallet(e) {
-    e.preventDefault();
-    const btn     = document.getElementById("wallet-btn");
-    const label   = document.getElementById("wallet-btn-text");
-    label.textContent = "Loading…";
-    btn.style.opacity = "0.7";
-    try {
-      const resp = await fetch(passUrl);
-      if (!resp.ok) throw new Error(`Server error ${resp.status}`);
-      const blob   = await resp.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      window.location.href = blobUrl;
-    } catch (err) {
-      label.textContent = "Failed — try again";
-      btn.style.opacity = "1";
-      console.error(err);
-    }
+  function addToWallet(e) {
+    // Direct navigation to the pass URL — iOS intercepts the pkpass MIME type
+    // and routes it to Wallet. Blob URLs do NOT trigger this OS-level routing.
+    window.location.href = passUrl;
   }
 
   function copyLink() {

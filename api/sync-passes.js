@@ -6,13 +6,10 @@
 //   Manual trigger  — Authorization: Bearer {CRON_SECRET}  (always allowed)
 //   Cron trigger    — must also have SYNC_ENABLED=true in Vercel env vars
 
-import { kv }               from "@vercel/kv";
-import { buildPassTemplate } from "../lib/pass-template.js";
-import { readFileSync }      from "fs";
-import { join }              from "path";
+import { getSentIds, markSent } from "../lib/kv.js";
+import { buildPassTemplate }    from "../lib/pass-template.js";
 
 const PHOREST_BASE = "https://platform.phorest.com/third-party-api-server/api/business";
-const KV_SET_KEY   = "treasury:sent_client_ids";
 
 // ── Phorest ───────────────────────────────────────────────────────────────────
 
@@ -31,34 +28,6 @@ async function fetchClients(sinceISO) {
   if (!res.ok) throw new Error(`Phorest fetch failed: ${res.status}`);
   const data  = await res.json();
   return data?._embedded?.clients ?? [];
-}
-
-// ── Deduplication via Vercel KV ───────────────────────────────────────────────
-
-async function getSentIds() {
-  try {
-    const ids = await kv.smembers(KV_SET_KEY);
-    return new Set(ids ?? []);
-  } catch {
-    console.warn("[Treasury] KV unavailable — deduplication skipped this run");
-    return new Set();
-  }
-}
-
-async function markSent(clientId) {
-  try {
-    await kv.sadd(KV_SET_KEY, clientId);
-  } catch {
-    console.warn("[Treasury] KV write failed for client:", clientId);
-  }
-}
-
-export async function getSentList() {
-  try {
-    return (await kv.smembers(KV_SET_KEY)) ?? [];
-  } catch {
-    return [];
-  }
 }
 
 // ── Email delivery ────────────────────────────────────────────────────────────
