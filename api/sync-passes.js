@@ -68,10 +68,13 @@ async function generatePassBuffer(client) {
 
 // ── Resend email delivery ─────────────────────────────────────────────────────
 
-async function sendPassEmail(client, pkpassBuffer) {
+async function sendPassEmail(client) {
   const firstName = client.firstName || "there";
   const email     = client.email;
   if (!email) return { skipped: true, reason: "no email" };
+
+  const baseUrl  = process.env.PASS_BASE_URL || `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  const passUrl  = `${baseUrl}/api/generate-pass?member=${encodeURIComponent(`${client.firstName} ${client.lastName}`.trim())}`;
 
   const res = await fetch("https://api.resend.com/emails", {
     method:  "POST",
@@ -80,17 +83,10 @@ async function sendPassEmail(client, pkpassBuffer) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from:    process.env.RESEND_FROM_EMAIL || "Treasury Aesthetics <aesthetics@treasuryhealth.ca>",
+      from:    process.env.RESEND_FROM_EMAIL || "Treasury Aesthetics <hello@treasuryaesthetics.ca>",
       to:      [email],
       subject: "Your Treasury Aesthetics Loyalty Pass",
-      html:    buildEmailHtml(firstName),
-      attachments: [
-        {
-          filename:    "treasury-aesthetics.pkpass",
-          content:     pkpassBuffer.toString("base64"),
-          content_type: "application/vnd.apple.pkpass",
-        },
-      ],
+      html:    buildEmailHtml(firstName, passUrl),
     }),
   });
 
@@ -101,7 +97,7 @@ async function sendPassEmail(client, pkpassBuffer) {
   return { sent: true };
 }
 
-function buildEmailHtml(firstName) {
+function buildEmailHtml(firstName, passUrl) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -115,12 +111,21 @@ function buildEmailHtml(firstName) {
       <div style="width:60px;height:1px;background:linear-gradient(90deg,transparent,#C9A55A,transparent);margin:16px auto;"></div>
     </td></tr>
     <tr><td style="background:#1E1E1C;border-radius:16px;border:1px solid rgba(201,165,90,0.2);padding:32px;text-align:center;">
-      <p style="color:#F5F0E8;font-size:15px;line-height:1.6;margin:0 0 24px;">
+      <p style="color:#F5F0E8;font-size:15px;line-height:1.6;margin:0 0 28px;">
         Hi ${firstName},<br><br>
-        Welcome to Treasury Aesthetics. Your personalised loyalty pass is attached — tap it to add it directly to Apple Wallet.
+        Welcome to Treasury Aesthetics. Tap the button below on your iPhone to add your personalised loyalty pass directly to Apple Wallet.
       </p>
-      <p style="color:rgba(245,240,232,0.5);font-size:12px;margin:0;">
-        Open this email on your iPhone and tap the <strong style="color:#C9A55A;">.pkpass</strong> attachment.
+      <a href="${passUrl}" style="display:inline-block;text-decoration:none;">
+        <img
+          src="https://apple-wallet-badge.vercel.app/en_US/add-to-apple-wallet.svg"
+          alt="Add to Apple Wallet"
+          width="160"
+          height="52"
+          style="display:block;border:0;"
+        />
+      </a>
+      <p style="color:rgba(245,240,232,0.35);font-size:11px;margin:20px 0 0;">
+        Open this email on your iPhone for the best experience.
       </p>
     </td></tr>
     <tr><td style="text-align:center;padding-top:32px;">
@@ -185,8 +190,7 @@ export default async function handler(req, res) {
       if (!client.email)   { results.skipped.push({ id, reason: "no email" });     continue; }
 
       try {
-        const pkpassBuffer = await generatePassBuffer(client);
-        await sendPassEmail(client, pkpassBuffer);
+        await sendPassEmail(client);
         await markSent(id, process.env.VERCEL_TOKEN, process.env.VERCEL_PROJECT_ID, process.env.VERCEL_TEAM_ID);
         results.sent.push({ id, name: `${client.firstName} ${client.lastName}`, email: client.email });
       } catch (err) {
