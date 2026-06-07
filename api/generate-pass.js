@@ -67,7 +67,7 @@ export default async function handler(req, res) {
     // 2 ── Build the pass.json payload
     const passJson = buildPassTemplate({
       serialNumber: `treasury-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-      targetUrl:    process.env.PASS_TARGET_URL || "https://treasuryhealth.ca",
+      targetUrl:    process.env.PASS_TARGET_URL || "https://treasuryaesthetics.ca",
       memberName:   req.query.member ? decodeURIComponent(req.query.member) : null,
     });
 
@@ -75,7 +75,6 @@ export default async function handler(req, res) {
     const images = loadPassImages();
 
     // 4 ── Assemble and sign the PKPass
-    //      PKPass constructor: (bufferMap, certificates, overrides?)
     const pass = new PKPass(
       {
         "pass.json": Buffer.from(JSON.stringify(passJson, null, 2)),
@@ -84,14 +83,31 @@ export default async function handler(req, res) {
       certificates
     );
 
-    // 5 ── Serialise to buffer
+    // 5 ── passkit-generator v3 always injects additionalInfoFields:[] into
+    //      storeCard, which is not in Apple's storeCard spec and causes Wallet
+    //      to reject the pass. Strip it before serialisation via reflection.
+    try {
+      for (const sym of Object.getOwnPropertySymbols(pass)) {
+        const val = pass[sym];
+        if (val && typeof val === "object" && val.storeCard) {
+          delete val.storeCard.additionalInfoFields;
+          break;
+        }
+      }
+    } catch (_) { /* non-fatal */ }
+
+    // 6 ── Serialise to buffer
     const pkpassBuffer = await pass.getAsBuffer();
 
-    // 6 ── Stream back to client
-    //      MIME type triggers the "Add to Wallet" sheet on iOS
-    res.setHeader("Content-Type",   "application/vnd.apple.pkpass");
-    res.setHeader("Content-Length", pkpassBuffer.length);
-    res.setHeader("Cache-Control",  "no-store");
+    // 7 ── Stream back to client.
+    //      Content-Disposition filename gives iOS the .pkpass extension hint,
+    //      which helps Mail/Safari route the file to Wallet.
+    //      MIME type alone should suffice on modern iOS but the filename is a
+    //      belt-and-suspenders signal for older versions.
+    res.setHeader("Content-Type",        "application/vnd.apple.pkpass");
+    res.setHeader("Content-Disposition", 'attachment; filename="treasury.pkpass"');
+    res.setHeader("Content-Length",      pkpassBuffer.length);
+    res.setHeader("Cache-Control",       "no-store");
 
     return res.status(200).send(pkpassBuffer);
 

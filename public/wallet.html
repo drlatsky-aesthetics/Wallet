@@ -321,7 +321,7 @@
           alt="Treasury Aesthetics QR Code — scan to visit treasuryhealth.ca"
         />
       </div>
-      <p class="qr-label">Scan to visit treasuryhealth.ca</p>
+      <p class="qr-label">Scan to visit treasuryaesthetics.ca</p>
       <p class="qr-sublabel">Present at reception or scan to book</p>
     </div>
 
@@ -334,7 +334,7 @@
         <div class="meta-div"></div>
         <div class="meta-item">
           <p class="meta-label">PORTAL</p>
-          <p class="meta-value">treasuryhealth.ca</p>
+          <p class="meta-value">treasuryaesthetics.ca</p>
         </div>
         <div class="meta-div"></div>
         <div class="meta-item">
@@ -348,7 +348,7 @@
     <div class="card-shine"></div>
   </div>
 
-  <a class="wallet-btn" href="/api/generate-pass" id="wallet-btn" onclick="addToWallet(event)">
+  <a class="wallet-btn" href="/api/generate-pass" id="wallet-btn">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
       <rect x="2" y="5" width="20" height="14" rx="3" stroke="#161614" stroke-width="1.8"/>
       <path d="M2 9h20" stroke="#161614" stroke-width="1.5"/>
@@ -402,12 +402,6 @@
     document.getElementById("wallet-btn").style.cursor  = "default";
     document.getElementById("wallet-btn").removeAttribute("href");
     document.getElementById("wallet-btn").removeAttribute("onclick");
-  }
-
-  function addToWallet(e) {
-    // Direct navigation to the pass URL — iOS intercepts the pkpass MIME type
-    // and routes it to Wallet. Blob URLs do NOT trigger this OS-level routing.
-    window.location.href = passUrl;
   }
 
   function copyLink() {
