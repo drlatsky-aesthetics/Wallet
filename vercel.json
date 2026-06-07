@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "installCommand": "npm install --omit=dev",
+  "crons": [
+    {
+      "path": "/api/sync-passes",
+      "schedule": "0 * * * *"
+    }
+  ],
+  "functions": {
+    "api/generate-pass.js": {
+      "maxDuration": 10
+    },
+    "api/sync-passes.js": {
+      "maxDuration": 60
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/generate-pass",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ]
+}
