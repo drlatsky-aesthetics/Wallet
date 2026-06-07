@@ -100,14 +100,12 @@ export default async function handler(req, res) {
     const pkpassBuffer = await pass.getAsBuffer();
 
     // 7 ── Stream back to client.
-    //      Content-Disposition filename gives iOS the .pkpass extension hint,
-    //      which helps Mail/Safari route the file to Wallet.
-    //      MIME type alone should suffice on modern iOS but the filename is a
-    //      belt-and-suspenders signal for older versions.
-    res.setHeader("Content-Type",        "application/vnd.apple.pkpass");
-    res.setHeader("Content-Disposition", 'attachment; filename="treasury.pkpass"');
-    res.setHeader("Content-Length",      pkpassBuffer.length);
-    res.setHeader("Cache-Control",       "no-store");
+    //      MIME type alone triggers Wallet routing on iOS — do NOT set
+    //      Content-Disposition: attachment, which causes Mail's WKWebView to
+    //      attempt a file download (blocked in-app) instead of routing to Wallet.
+    res.setHeader("Content-Type",   "application/vnd.apple.pkpass");
+    res.setHeader("Content-Length", pkpassBuffer.length);
+    res.setHeader("Cache-Control",  "no-store");
 
     return res.status(200).send(pkpassBuffer);
 
