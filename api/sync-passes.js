@@ -74,7 +74,7 @@ async function sendPassEmail(client) {
   if (!email) return { skipped: true, reason: "no email" };
 
   const baseUrl  = process.env.PASS_BASE_URL || `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
-  const passUrl  = `${baseUrl}/api/generate-pass?member=${encodeURIComponent(`${client.firstName} ${client.lastName}`.trim())}`;
+  const passUrl  = `${baseUrl}/wallet.html?member=${encodeURIComponent(`${client.firstName} ${client.lastName}`.trim())}`;
 
   const res = await fetch("https://api.resend.com/emails", {
     method:  "POST",
