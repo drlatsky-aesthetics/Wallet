@@ -10,9 +10,10 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
 
   try {
-    const memberName     = req.query.member ? decodeURIComponent(req.query.member) : null;
-    const membershipTier = req.query.tier   ? decodeURIComponent(req.query.tier)   : "standard";
-    const pkpassBuffer   = await generatePassBuffer(memberName, membershipTier);
+    const memberName     = req.query.member   ? decodeURIComponent(req.query.member)   : null;
+    const membershipTier = req.query.tier     ? decodeURIComponent(req.query.tier)     : "standard";
+    const clientId       = req.query.clientId ? decodeURIComponent(req.query.clientId) : null;
+    const pkpassBuffer   = await generatePassBuffer(memberName, membershipTier, clientId);
 
     res.setHeader("Content-Type",   "application/vnd.apple.pkpass");
     res.setHeader("Content-Length", pkpassBuffer.length);

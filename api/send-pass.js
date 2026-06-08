@@ -7,9 +7,9 @@
 import { markSent }           from "../lib/kv.js";
 import { generatePassBuffer } from "../lib/generate-pass-buffer.js";
 
-function buildEmailHtml(firstName, fullName, tier = "standard") {
+function buildEmailHtml(firstName, fullName, tier = "standard", clientId = null) {
   const baseUrl = process.env.PASS_BASE_URL || "https://wallet-tau-green.vercel.app";
-  const passUrl = `${baseUrl}/api/generate-pass?member=${encodeURIComponent(fullName)}&tier=${encodeURIComponent(tier)}`;
+  const passUrl = `${baseUrl}/api/generate-pass?member=${encodeURIComponent(fullName)}&tier=${encodeURIComponent(tier)}${clientId ? `&clientId=${encodeURIComponent(clientId)}` : ""}`;
   // Note: email is designed for iOS Mail light mode — body backgrounds are stripped by iOS Mail.
   // Cream (#FAF8F4) background on the card gives a warm luxury feel that survives rendering.
   return `<!DOCTYPE html>
@@ -102,7 +102,7 @@ export default async function handler(req, res) {
     try {
       // Generate the signed .pkpass — attached silently so iOS Mail shows
       // its native "Add to Apple Wallet" banner without cluttering the email UI.
-      const passBuffer = await generatePassBuffer(name, membershipTier);
+      const passBuffer = await generatePassBuffer(name, membershipTier, id);
 
       const res2 = await fetch("https://api.resend.com/emails", {
         method:  "POST",
@@ -114,7 +114,7 @@ export default async function handler(req, res) {
           from:    process.env.RESEND_FROM_EMAIL || "Treasury Aesthetics <hello@treasuryaesthetics.ca>",
           to:      [email],
           subject: "Your Treasury Aesthetics Loyalty Pass",
-          html:    buildEmailHtml(firstName || "there", name, membershipTier),
+          html:    buildEmailHtml(firstName || "there", name, membershipTier, id),
           attachments: [
             {
               filename:     "Loyalty Pass.pkpass",
