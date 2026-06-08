@@ -1,0 +1,23 @@
+{
+  "name": "treasury-wallet-pass",
+  "version": "1.0.0",
+  "description": "Native Apple Wallet PKPass generator for Treasury Aesthetics",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod",
+    "generate-images": "node scripts/generate-pass-images.js"
+  },
+  "dependencies": {
+    "@vercel/kv":       "^3.0.0",
+    "passkit-generator": "^3.2.0"
+  },
+  "devDependencies": {
+    "@napi-rs/canvas": "^0.1.53",
+    "vercel": "^33.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
