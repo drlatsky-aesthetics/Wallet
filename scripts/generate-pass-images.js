@@ -7,7 +7,7 @@
 //
 // Output: assets/pass/{icon,icon@2x,icon@3x,logo,logo@2x}.png
 
-import { createCanvas } from "canvas";
+import { createCanvas } from "@napi-rs/canvas";
 import { writeFileSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
@@ -78,6 +78,78 @@ function makeLogo(w, h) {
 console.log("Generating logo assets…");
 save("logo.png",    makeLogo(160, 50));
 save("logo@2x.png", makeLogo(320, 100));
+
+// ── Strip image (banner behind patient name — Option C layout) ────────────────
+// Dimensions: Apple storeCard strip: 320×123 @1x  →  640×246 @2x
+// Design: deep charcoal gradient + translucent gold brushstroke circle watermark.
+// The patient name is rendered by iOS Wallet as a text overlay — we only paint the bg.
+function makeBrushstrokeCircle(cx, centerX, centerY, radius, color, alpha) {
+  const strokes = 22;
+  for (let i = 0; i < strokes; i++) {
+    const angleOffset = (Math.random() - 0.5) * 0.18;
+    const radiusJitter = radius + (Math.random() - 0.5) * (radius * 0.045);
+    const startAngle   = -0.12 + angleOffset + (i / strokes) * Math.PI * 2;
+    const endAngle     = startAngle + Math.PI * (1.85 + Math.random() * 0.12);
+    const lineWidth    = 3 + Math.random() * 7;
+
+    cx.beginPath();
+    cx.arc(centerX, centerY, radiusJitter, startAngle, endAngle);
+    cx.lineWidth   = lineWidth;
+    cx.strokeStyle = color;
+    cx.globalAlpha = alpha * (0.35 + Math.random() * 0.65);
+    cx.stroke();
+  }
+  cx.globalAlpha = 1;
+}
+
+function makeStrip(w, h) {
+  const c  = createCanvas(w, h);
+  const cx = c.getContext("2d");
+
+  // Background: warm-dark gradient — slightly amber top-left, pure charcoal bottom-right
+  const bg = cx.createLinearGradient(0, 0, w, h);
+  bg.addColorStop(0,   "#252118");
+  bg.addColorStop(0.4, "#1C1A14");
+  bg.addColorStop(1,   "#0E0D0B");
+  cx.fillStyle = bg;
+  cx.fillRect(0, 0, w, h);
+
+  // Subtle radial glow top-right for depth
+  const glow = cx.createRadialGradient(w * 0.82, h * 0.2, 0, w * 0.82, h * 0.2, w * 0.55);
+  glow.addColorStop(0, "rgba(201,165,90,0.07)");
+  glow.addColorStop(1, "rgba(0,0,0,0)");
+  cx.fillStyle = glow;
+  cx.fillRect(0, 0, w, h);
+
+  // Primary brushstroke circle — large, centered right, very translucent gold
+  const circleX = w * 0.78;
+  const circleY = h * 0.5;
+  const circleR = h * 0.38;
+  makeBrushstrokeCircle(cx, circleX, circleY, circleR, GOLD, 0.13);
+
+  // Second smaller echo circle for layered depth
+  makeBrushstrokeCircle(cx, circleX - w * 0.01, circleY - h * 0.04, circleR * 0.76, GOLD, 0.055);
+
+  // Thin fading gold line along the bottom edge
+  cx.beginPath();
+  cx.moveTo(0, h - 1);
+  cx.lineTo(w, h - 1);
+  const lineGrad = cx.createLinearGradient(0, 0, w, 0);
+  lineGrad.addColorStop(0,   "rgba(201,165,90,0)");
+  lineGrad.addColorStop(0.2, "rgba(201,165,90,0.4)");
+  lineGrad.addColorStop(0.8, "rgba(201,165,90,0.4)");
+  lineGrad.addColorStop(1,   "rgba(201,165,90,0)");
+  cx.strokeStyle = lineGrad;
+  cx.lineWidth   = 1;
+  cx.globalAlpha = 1;
+  cx.stroke();
+
+  return c;
+}
+
+console.log("Generating strip assets…");
+save("strip.png",    makeStrip(320, 123));
+save("strip@2x.png", makeStrip(640, 246));
 
 console.log("\nDone. Assets written to assets/pass/");
 console.log("Replace with final brand artwork before patient-facing deployment.");

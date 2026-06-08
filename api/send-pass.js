@@ -1,12 +1,10 @@
 // api/send-pass.js
 // Sends wallet pass emails to clients chosen in the admin panel.
-// The .pkpass file is generated server-side and attached directly to the email.
-// iOS Mail natively shows "Add to Apple Wallet" for pkpass attachments —
-// no link, no browser, no WKWebView download issues.
+// Email contains an "Add to Apple Wallet" button linking to the pass landing page.
+// No .pkpass file attachment — keeps email clean and avoids spam-filter triggers.
 // POST body: { clients: [{ id, firstName, lastName, email }] }
 
-import { markSent }           from "../lib/kv.js";
-import { generatePassBuffer } from "../lib/generate-pass-buffer.js";
+import { markSent } from "../lib/kv.js";
 
 function buildEmailHtml(firstName) {
   return `<!DOCTYPE html>
@@ -24,7 +22,7 @@ function buildEmailHtml(firstName) {
     <tr><td style="background:#1E1E1C;border-radius:16px;border:1px solid rgba(201,165,90,0.2);padding:32px;text-align:center;">
       <p style="color:#F5F0E8;font-size:15px;line-height:1.6;margin:0 0 28px;">
         Hi ${firstName},<br><br>
-        Welcome to Treasury Aesthetics. Your personalised loyalty pass is attached to this email. Tap the attachment or the button below to add it to Apple Wallet.
+        Welcome to Treasury Aesthetics. Your personalised loyalty pass is ready. Tap the button below on your iPhone to add it to Apple Wallet.
       </p>
       <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
         <tr>
@@ -87,9 +85,6 @@ export default async function handler(req, res) {
     const name = `${firstName} ${lastName}`.trim();
 
     try {
-      // Generate the signed .pkpass buffer for this client
-      const passBuffer = await generatePassBuffer(`${firstName} ${lastName}`.trim());
-
       const res2 = await fetch("https://api.resend.com/emails", {
         method:  "POST",
         headers: {
@@ -101,13 +96,6 @@ export default async function handler(req, res) {
           to:      [email],
           subject: "Your Treasury Aesthetics Loyalty Pass",
           html:    buildEmailHtml(firstName || "there"),
-          attachments: [
-            {
-              filename:     "treasury-pass.pkpass",
-              content:      passBuffer.toString("base64"),
-              content_type: "application/vnd.apple.pkpass",
-            },
-          ],
         }),
       });
 
