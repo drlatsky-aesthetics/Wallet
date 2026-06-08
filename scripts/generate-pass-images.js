@@ -65,12 +65,14 @@ function makeLogo(w, h) {
   cx.textAlign   = "left";
   cx.textBaseline = "middle";
 
-  // "Treasury" in cream, "Aesthetics" slightly dimmer
-  cx.fillText("Treasury", h * 0.08, h * 0.42);
+  // "Treasury" in cream
+  cx.fillText("Treasury", h * 0.08, h * 0.38);
 
-  cx.fillStyle  = GOLD;
-  cx.font       = `400 ${fontSize * 0.72}px Georgia, serif`;
-  cx.fillText("AESTHETICS", h * 0.08, h * 0.75);
+  // "AESTHETICS" in gold, spaced, smaller
+  cx.fillStyle    = GOLD;
+  cx.font         = `400 ${fontSize * 0.6}px Georgia, serif`;
+  cx.letterSpacing = "2px";
+  cx.fillText("AESTHETICS", h * 0.08, h * 0.74);
 
   return c;
 }
@@ -87,41 +89,69 @@ function makeStrip(w, h) {
   const c  = createCanvas(w, h);
   const cx = c.getContext("2d");
 
-  // Background: warm-dark gradient — slightly amber top-left, pure charcoal bottom-right
-  const bg = cx.createLinearGradient(0, 0, w, h);
-  bg.addColorStop(0,   "#252118");
-  bg.addColorStop(0.4, "#1C1A14");
-  bg.addColorStop(1,   "#0E0D0B");
+  // ── Base: deep warm-charcoal gradient, slightly lighter top-left ─────────
+  const bg = cx.createLinearGradient(0, 0, w * 0.6, h);
+  bg.addColorStop(0,   "#272318");
+  bg.addColorStop(0.5, "#1D1B13");
+  bg.addColorStop(1,   "#111009");
   cx.fillStyle = bg;
   cx.fillRect(0, 0, w, h);
 
-  // Subtle radial glow top-right for depth
-  const glow = cx.createRadialGradient(w * 0.82, h * 0.15, 0, w * 0.82, h * 0.15, w * 0.55);
-  glow.addColorStop(0, "rgba(201,165,90,0.06)");
-  glow.addColorStop(1, "rgba(0,0,0,0)");
+  // ── Gold shimmer band — diagonal highlight across the strip ──────────────
+  // Simulates the metallic sheen of a premium card catching light
+  const shimmer = cx.createLinearGradient(0, 0, w * 0.7, h);
+  shimmer.addColorStop(0,    "rgba(201,165,90,0)");
+  shimmer.addColorStop(0.28, "rgba(201,165,90,0)");
+  shimmer.addColorStop(0.38, "rgba(225,195,120,0.09)");
+  shimmer.addColorStop(0.44, "rgba(245,220,150,0.18)");
+  shimmer.addColorStop(0.5,  "rgba(225,195,120,0.09)");
+  shimmer.addColorStop(0.6,  "rgba(201,165,90,0)");
+  shimmer.addColorStop(1,    "rgba(201,165,90,0)");
+  cx.fillStyle = shimmer;
+  cx.fillRect(0, 0, w, h);
+
+  // ── Radial warmth — top-left corner glow for depth ───────────────────────
+  const glow = cx.createRadialGradient(w * 0.08, 0, 0, w * 0.08, 0, w * 0.7);
+  glow.addColorStop(0,   "rgba(201,165,90,0.10)");
+  glow.addColorStop(0.5, "rgba(201,165,90,0.03)");
+  glow.addColorStop(1,   "rgba(0,0,0,0)");
   cx.fillStyle = glow;
   cx.fillRect(0, 0, w, h);
 
-  // "T" watermark — large serif, translucent gold, pushed to the right
-  const fontSize = h * 1.6;
-  cx.font        = `bold ${fontSize}px Georgia, serif`;
-  cx.textAlign   = "right";
+  // ── "T" watermark — large serif, very faint gold, clipped right ──────────
+  const fontSize  = h * 1.65;
+  cx.font         = `bold ${fontSize}px Georgia, serif`;
+  cx.textAlign    = "right";
   cx.textBaseline = "middle";
-  cx.fillStyle   = GOLD;
-  cx.globalAlpha = 0.07;
-  cx.fillText("T", w * 0.97, h * 0.58);
-  cx.globalAlpha = 1;
+  cx.fillStyle    = GOLD;
+  cx.globalAlpha  = 0.055;
+  cx.fillText("T", w * 0.98, h * 0.56);
+  cx.globalAlpha  = 1;
 
-  // Thin fading gold line along the bottom edge
+  // ── Top edge highlight — thin bright line along top for card-like lift ───
+  const topLine = cx.createLinearGradient(0, 0, w, 0);
+  topLine.addColorStop(0,   "rgba(201,165,90,0)");
+  topLine.addColorStop(0.15, "rgba(201,165,90,0.35)");
+  topLine.addColorStop(0.5,  "rgba(245,220,150,0.55)");
+  topLine.addColorStop(0.85, "rgba(201,165,90,0.35)");
+  topLine.addColorStop(1,   "rgba(201,165,90,0)");
   cx.beginPath();
-  cx.moveTo(0, h - 1);
-  cx.lineTo(w, h - 1);
-  const lineGrad = cx.createLinearGradient(0, 0, w, 0);
-  lineGrad.addColorStop(0,   "rgba(201,165,90,0)");
-  lineGrad.addColorStop(0.2, "rgba(201,165,90,0.4)");
-  lineGrad.addColorStop(0.8, "rgba(201,165,90,0.4)");
-  lineGrad.addColorStop(1,   "rgba(201,165,90,0)");
-  cx.strokeStyle = lineGrad;
+  cx.moveTo(0, 0.5);
+  cx.lineTo(w, 0.5);
+  cx.strokeStyle = topLine;
+  cx.lineWidth   = 1;
+  cx.stroke();
+
+  // ── Bottom edge — same fade-in/out gold line ──────────────────────────────
+  const botLine = cx.createLinearGradient(0, 0, w, 0);
+  botLine.addColorStop(0,    "rgba(201,165,90,0)");
+  botLine.addColorStop(0.2,  "rgba(201,165,90,0.3)");
+  botLine.addColorStop(0.8,  "rgba(201,165,90,0.3)");
+  botLine.addColorStop(1,    "rgba(201,165,90,0)");
+  cx.beginPath();
+  cx.moveTo(0, h - 0.5);
+  cx.lineTo(w, h - 0.5);
+  cx.strokeStyle = botLine;
   cx.lineWidth   = 1;
   cx.stroke();
 
