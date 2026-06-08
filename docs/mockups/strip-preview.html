@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Strip Preview</title>
+<style>
+  body { background: #0D0D0B; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 32px; font-family: -apple-system, sans-serif; }
+  h3 { color: #C9A55A; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin: 0; }
+  .pass {
+    width: 320px; border-radius: 16px; overflow: hidden;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.8), 0 0 0 1px rgba(201,165,90,0.15);
+    background: #161614;
+  }
+  .pass-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px 10px;
+  }
+  .logo-wrap { display: flex; align-items: center; gap: 8px; }
+  .logo-icon {
+    width: 32px; height: 32px; border-radius: 6px;
+    background: linear-gradient(135deg,#C9A55A,#8B6D35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: #161614;
+  }
+  .logo-text { font-size: 11px; letter-spacing: 1.5px; color: #F5F0E8; text-transform: uppercase; }
+  .member-badge { font-size: 10px; letter-spacing: 2px; color: #C9A55A; text-transform: uppercase; }
+  .strip-area { position: relative; }
+  .strip-area img { display: block; width: 100%; }
+  .strip-overlay {
+    position: absolute; bottom: 14px; left: 16px;
+  }
+  .strip-overlay .label { font-size: 8px; letter-spacing: 2.5px; color: rgba(201,165,90,0.85); text-transform: uppercase; display: block; margin-bottom: 3px; }
+  .strip-overlay .name { font-size: 22px; font-weight: 300; color: #F5F0E8; font-family: Georgia, serif; }
+  .pass-lower { padding: 14px 16px 16px; }
+  .fields-row { display: flex; justify-content: space-between; margin-bottom: 14px; }
+  .field label { font-size: 8px; letter-spacing: 2px; color: #C9A55A; text-transform: uppercase; display: block; margin-bottom: 3px; }
+  .field span { font-size: 11px; color: #F5F0E8; }
+  .qr-row { display: flex; align-items: center; gap: 14px; border-top: 1px solid rgba(201,165,90,0.15); padding-top: 14px; }
+  .qr-box { width: 80px; height: 80px; background: #F5F0E8; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .qr-info label { font-size: 8px; letter-spacing: 2px; color: #C9A55A; text-transform: uppercase; display: block; margin-bottom: 4px; }
+  .qr-info span { font-size: 11px; color: rgba(245,240,232,0.6); }
+  .qr-info small { font-size: 9px; color: rgba(245,240,232,0.3); display: block; margin-top: 6px; }
+</style>
+</head>
+<body>
+  <h3>Generated Strip — Pass Preview</h3>
+  <div class="pass">
+    <div class="pass-header">
+      <div class="logo-wrap">
+        <div class="logo-icon">TA</div>
+        <span class="logo-text">Treasury Aesthetics</span>
+      </div>
+      <span class="member-badge">Member</span>
+    </div>
+    <div class="strip-area">
+      <img src="../../assets/pass/strip@2x.png" alt="strip">
+      <div class="strip-overlay">
+        <span class="label">Patient</span>
+        <div class="name">Sarah Johnson</div>
+      </div>
+    </div>
+    <div class="pass-lower">
+      <div class="fields-row">
+        <div class="field"><label>Location</label><span>Toronto, ON</span></div>
+        <div class="field"><label>Issued</label><span>June 2025</span></div>
+        <div class="field"><label>Type</label><span>Loyalty</span></div>
+      </div>
+      <div class="qr-row">
+        <div class="qr-box">
+          <svg viewBox="0 0 70 70" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+            <rect width="70" height="70" fill="#F5F0E8"/>
+            <rect x="5" y="5" width="20" height="20" rx="2" fill="#161614"/>
+            <rect x="8" y="8" width="14" height="14" rx="1" fill="#F5F0E8"/>
+            <rect x="11" y="11" width="8" height="8" fill="#161614"/>
+            <rect x="45" y="5" width="20" height="20" rx="2" fill="#161614"/>
+            <rect x="48" y="8" width="14" height="14" rx="1" fill="#F5F0E8"/>
+            <rect x="51" y="11" width="8" height="8" fill="#161614"/>
+            <rect x="5" y="45" width="20" height="20" rx="2" fill="#161614"/>
+            <rect x="8" y="48" width="14" height="14" rx="1" fill="#F5F0E8"/>
+            <rect x="11" y="51" width="8" height="8" fill="#161614"/>
+            <rect x="30" y="5" width="5" height="5" fill="#161614"/>
+            <rect x="38" y="5" width="5" height="5" fill="#161614"/>
+            <rect x="5" y="30" width="5" height="5" fill="#161614"/>
+            <rect x="30" y="30" width="5" height="5" fill="#161614"/>
+            <rect x="55" y="30" width="5" height="5" fill="#161614"/>
+            <rect x="30" y="45" width="5" height="5" fill="#161614"/>
+            <rect x="45" y="55" width="5" height="5" fill="#161614"/>
+            <rect x="63" y="55" width="5" height="5" fill="#161614"/>
+          </svg>
+        </div>
+        <div class="qr-info">
+          <label>Patient Portal</label>
+          <span>treasuryaesthetics.ca</span>
+          <small>Physician-led medical aesthetics<br>Toronto, ON</small>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p style="color:rgba(245,240,232,0.25);font-size:11px;text-align:center;max-width:300px;line-height:1.6;">Strip image rendered from <code style="color:#C9A55A;">assets/pass/strip@2x.png</code> — the brushstroke circle watermark is in the right portion of the strip.</p>
+</body>
+</html>

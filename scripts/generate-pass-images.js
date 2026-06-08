@@ -51,28 +51,42 @@ save("icon.png",    makeIcon(29));
 save("icon@2x.png", makeIcon(58));
 save("icon@3x.png", makeIcon(87));
 
-// ── Logo (wordmark on transparent background) ─────────────────────────────────
+// ── Logo (wordmark — matches brand: all-caps tracked serif gold) ──────────────
+// Brand: "TREASURY" large bold serif / "— AESTHETICS —" smaller tracked below
 function makeLogo(w, h) {
   const c  = createCanvas(w, h);
   const cx = c.getContext("2d");
 
-  // Transparent background — Wallet renders it on the pass background colour
-  cx.clearRect(0, 0, w, h);
+  cx.clearRect(0, 0, w, h); // transparent bg — Wallet renders on pass backgroundColor
 
-  const fontSize = h * 0.52;
-  cx.fillStyle   = CREAM;
-  cx.font        = `400 ${fontSize}px Georgia, serif`;
-  cx.textAlign   = "left";
-  cx.textBaseline = "middle";
+  const pad = h * 0.06;
 
-  // "Treasury" in cream
-  cx.fillText("Treasury", h * 0.08, h * 0.38);
-
-  // "AESTHETICS" in gold, spaced, smaller
+  // "TREASURY" — large, bold, all-caps, gold, tracked
+  const primarySize = h * 0.48;
   cx.fillStyle    = GOLD;
-  cx.font         = `400 ${fontSize * 0.6}px Georgia, serif`;
-  cx.letterSpacing = "2px";
-  cx.fillText("AESTHETICS", h * 0.08, h * 0.74);
+  cx.font         = `bold ${primarySize}px Georgia, serif`;
+  cx.textAlign    = "left";
+  cx.textBaseline = "alphabetic";
+
+  // Simulate letter-spacing by drawing each character individually
+  const treasury    = "TREASURY";
+  const tracking    = primarySize * 0.06; // space between letters
+  let x = pad;
+  for (const ch of treasury) {
+    cx.fillText(ch, x, h * 0.56);
+    x += cx.measureText(ch).width + tracking;
+  }
+
+  // "— AESTHETICS —" — smaller, spaced out, gold, beneath
+  const subSize = h * 0.26;
+  cx.font = `400 ${subSize}px Georgia, serif`;
+  const sub         = "— AESTHETICS —";
+  const subTracking = subSize * 0.12;
+  let sx = pad * 0.5;
+  for (const ch of sub) {
+    cx.fillText(ch, sx, h * 0.92);
+    sx += cx.measureText(ch).width + (ch === " " ? subTracking * 0.5 : subTracking * 0.3);
+  }
 
   return c;
 }

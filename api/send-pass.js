@@ -7,9 +7,9 @@
 import { markSent }           from "../lib/kv.js";
 import { generatePassBuffer } from "../lib/generate-pass-buffer.js";
 
-function buildEmailHtml(firstName, fullName) {
+function buildEmailHtml(firstName, fullName, tier = "standard") {
   const baseUrl = process.env.PASS_BASE_URL || "https://wallet-tau-green.vercel.app";
-  const passUrl = `${baseUrl}/api/generate-pass?member=${encodeURIComponent(fullName)}`;
+  const passUrl = `${baseUrl}/api/generate-pass?member=${encodeURIComponent(fullName)}&tier=${encodeURIComponent(tier)}`;
   // Note: email is designed for iOS Mail light mode — body backgrounds are stripped by iOS Mail.
   // Cream (#FAF8F4) background on the card gives a warm luxury feel that survives rendering.
   return `<!DOCTYPE html>
@@ -119,7 +119,7 @@ export default async function handler(req, res) {
   const results = { sent: [], errors: [] };
 
   for (const client of clients) {
-    const { id, firstName, lastName, email } = client;
+    const { id, firstName, lastName, email, membershipTier = "standard" } = client;
     if (!email) {
       results.errors.push({ id, name: `${firstName} ${lastName}`.trim(), error: "No email address" });
       continue;
@@ -130,7 +130,7 @@ export default async function handler(req, res) {
     try {
       // Generate the signed .pkpass — attached silently so iOS Mail shows
       // its native "Add to Apple Wallet" banner without cluttering the email UI.
-      const passBuffer = await generatePassBuffer(name);
+      const passBuffer = await generatePassBuffer(name, membershipTier);
 
       const res2 = await fetch("https://api.resend.com/emails", {
         method:  "POST",
@@ -142,7 +142,7 @@ export default async function handler(req, res) {
           from:    process.env.RESEND_FROM_EMAIL || "Treasury Aesthetics <hello@treasuryaesthetics.ca>",
           to:      [email],
           subject: "Your Treasury Aesthetics Loyalty Pass",
-          html:    buildEmailHtml(firstName || "there", name),
+          html:    buildEmailHtml(firstName || "there", name, membershipTier),
           attachments: [
             {
               filename:     "Loyalty Pass.pkpass",
