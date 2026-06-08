@@ -81,27 +81,8 @@ save("logo@2x.png", makeLogo(320, 100));
 
 // ── Strip image (banner behind patient name — Option C layout) ────────────────
 // Dimensions: Apple storeCard strip: 320×123 @1x  →  640×246 @2x
-// Design: deep charcoal gradient + translucent gold brushstroke circle watermark.
+// Design: deep charcoal gradient + translucent gold "T" watermark (serif, right-aligned).
 // The patient name is rendered by iOS Wallet as a text overlay — we only paint the bg.
-function makeBrushstrokeCircle(cx, centerX, centerY, radius, color, alpha) {
-  const strokes = 22;
-  for (let i = 0; i < strokes; i++) {
-    const angleOffset = (Math.random() - 0.5) * 0.18;
-    const radiusJitter = radius + (Math.random() - 0.5) * (radius * 0.045);
-    const startAngle   = -0.12 + angleOffset + (i / strokes) * Math.PI * 2;
-    const endAngle     = startAngle + Math.PI * (1.85 + Math.random() * 0.12);
-    const lineWidth    = 3 + Math.random() * 7;
-
-    cx.beginPath();
-    cx.arc(centerX, centerY, radiusJitter, startAngle, endAngle);
-    cx.lineWidth   = lineWidth;
-    cx.strokeStyle = color;
-    cx.globalAlpha = alpha * (0.35 + Math.random() * 0.65);
-    cx.stroke();
-  }
-  cx.globalAlpha = 1;
-}
-
 function makeStrip(w, h) {
   const c  = createCanvas(w, h);
   const cx = c.getContext("2d");
@@ -115,20 +96,21 @@ function makeStrip(w, h) {
   cx.fillRect(0, 0, w, h);
 
   // Subtle radial glow top-right for depth
-  const glow = cx.createRadialGradient(w * 0.82, h * 0.2, 0, w * 0.82, h * 0.2, w * 0.55);
-  glow.addColorStop(0, "rgba(201,165,90,0.07)");
+  const glow = cx.createRadialGradient(w * 0.82, h * 0.15, 0, w * 0.82, h * 0.15, w * 0.55);
+  glow.addColorStop(0, "rgba(201,165,90,0.06)");
   glow.addColorStop(1, "rgba(0,0,0,0)");
   cx.fillStyle = glow;
   cx.fillRect(0, 0, w, h);
 
-  // Primary brushstroke circle — large, centered right, very translucent gold
-  const circleX = w * 0.78;
-  const circleY = h * 0.5;
-  const circleR = h * 0.38;
-  makeBrushstrokeCircle(cx, circleX, circleY, circleR, GOLD, 0.13);
-
-  // Second smaller echo circle for layered depth
-  makeBrushstrokeCircle(cx, circleX - w * 0.01, circleY - h * 0.04, circleR * 0.76, GOLD, 0.055);
+  // "T" watermark — large serif, translucent gold, pushed to the right
+  const fontSize = h * 1.6;
+  cx.font        = `bold ${fontSize}px Georgia, serif`;
+  cx.textAlign   = "right";
+  cx.textBaseline = "middle";
+  cx.fillStyle   = GOLD;
+  cx.globalAlpha = 0.07;
+  cx.fillText("T", w * 0.97, h * 0.58);
+  cx.globalAlpha = 1;
 
   // Thin fading gold line along the bottom edge
   cx.beginPath();
@@ -141,7 +123,6 @@ function makeStrip(w, h) {
   lineGrad.addColorStop(1,   "rgba(201,165,90,0)");
   cx.strokeStyle = lineGrad;
   cx.lineWidth   = 1;
-  cx.globalAlpha = 1;
   cx.stroke();
 
   return c;
