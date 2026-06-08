@@ -96,14 +96,14 @@
     /* Client list */
     .client-list { display: flex; flex-direction: column; border: 1px solid var(--gold-dim); border-radius: 12px; overflow: hidden; }
     .list-header {
-      display: grid; grid-template-columns: 28px 1fr 1fr 80px;
+      display: grid; grid-template-columns: 28px 1fr 1fr 110px 80px;
       gap: 10px; padding: 9px 14px;
       font-size: 9px; letter-spacing: 2px; color: var(--gold);
       border-bottom: 1px solid var(--gold-dim); background: rgba(201,165,90,0.05);
     }
 
     .client-row {
-      display: grid; grid-template-columns: 28px 1fr 1fr 80px;
+      display: grid; grid-template-columns: 28px 1fr 1fr 110px 80px;
       gap: 10px; align-items: center;
       padding: 10px 14px;
       border-bottom: 1px solid rgba(201,165,90,0.07);
@@ -219,6 +219,7 @@
       <div></div>
       <div>NAME</div>
       <div>EMAIL</div>
+      <div>TIER</div>
       <div>STATUS</div>
     </div>
 
@@ -295,14 +296,23 @@
 
   // ── Render client rows ──────────────────────────────────────────────────────
 
+  const OWNER_NAMES = ["jason latsky","justin di donato","amy baker","albert bebawy","evaare tom"];
+
+  function detectTier(c) {
+    const n = fullName(c).toLowerCase();
+    if (OWNER_NAMES.some(o => n.includes(o))) return "owner";
+    return "standard";
+  }
+
   function renderClientList() {
     const list = document.getElementById("client-list");
     list.innerHTML = "";
 
     allClients.forEach(c => {
       const isSelectable = c.email && c.status !== "sent";
-      const isPreChecked = isSelectable; // check unsent & errors by default
+      const isPreChecked = isSelectable;
       const rowClass = c.status === "sent" ? "sent-row" : c.status === "no-email" ? "no-email-row" : "";
+      const defaultTier = detectTier(c);
 
       const row = document.createElement("div");
       row.className = `client-row ${rowClass}`;
@@ -326,6 +336,14 @@
         </div>
         <div class="client-name">${esc(fullName(c))}</div>
         <div class="client-email">${esc(c.email || "—")}</div>
+        <div>
+          <select id="tier-${esc(c.id)}" style="width:100%;padding:5px 8px;font-size:11px;background:var(--light);border:1px solid rgba(201,165,90,0.2);border-radius:7px;color:var(--cream);font-family:-apple-system,sans-serif;" ${!isSelectable ? "disabled" : ""}>
+            <option value="standard" ${defaultTier==="standard"?"selected":""}>Standard</option>
+            <option value="reserve"  ${defaultTier==="reserve" ?"selected":""}>Reserve</option>
+            <option value="vault"    ${defaultTier==="vault"   ?"selected":""}>Vault</option>
+            <option value="owner"    ${defaultTier==="owner"   ?"selected":""}>Owner</option>
+          </select>
+        </div>
         <div id="pill-${esc(c.id)}">${pillHtml(c.status)}</div>
       `;
       list.appendChild(row);
@@ -392,7 +410,12 @@
     setLoading(btn, label, true, "Sending…");
     btn.disabled = true;
 
-    const selectedClients = checked.map(cb => allClients.find(c => c.id === cb.dataset.id)).filter(Boolean);
+    const selectedClients = checked.map(cb => {
+      const c    = allClients.find(c => c.id === cb.dataset.id);
+      if (!c) return null;
+      const tierEl = document.getElementById(`tier-${c.id}`);
+      return { ...c, membershipTier: tierEl ? tierEl.value : "standard" };
+    }).filter(Boolean);
 
     // Show "sending" pills
     selectedClients.forEach(c => {

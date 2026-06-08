@@ -54,50 +54,11 @@ function buildEmailHtml(firstName, fullName, tier = "standard") {
         Dear ${firstName},
       </p>
       <p style="color:#5A5650;font-size:14px;line-height:1.75;margin:0 0 28px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
-        Welcome to Treasury Aesthetics. Your personalised<br>loyalty pass is ready and waiting below.
+        Welcome to Treasury Aesthetics. Your personalised<br>loyalty pass is attached — tap it to add<br>to Apple Wallet.
       </p>
 
       <!-- Divider -->
-      <div style="width:40px;height:1px;background:rgba(201,165,90,0.3);margin:0 auto 28px;"></div>
-
-      <!-- Wallet attachment widget — mirrors the native iOS Mail attachment bar -->
-      <a href="${passUrl}" style="display:block;text-decoration:none;margin-bottom:8px;">
-        <table cellpadding="0" cellspacing="0" width="100%">
-          <tr>
-            <td style="background:#1A1A18;border-radius:14px;border:1px solid rgba(201,165,90,0.25);padding:14px 16px;">
-              <table cellpadding="0" cellspacing="0" width="100%">
-                <tr>
-                  <!-- Wallet card-stack icon -->
-                  <td style="width:46px;padding-right:13px;vertical-align:middle;">
-                    <table cellpadding="0" cellspacing="0" style="width:42px;height:42px;background:#232320;border-radius:9px;border:1px solid rgba(201,165,90,0.2);overflow:hidden;">
-                      <tr><td style="background:#4A90D9;height:12px;font-size:0;">&nbsp;</td></tr>
-                      <tr><td style="background:#C9A55A;height:9px;font-size:0;">&nbsp;</td></tr>
-                      <tr><td style="background:#3DAA72;height:9px;font-size:0;">&nbsp;</td></tr>
-                      <tr><td style="background:#232320;height:10px;font-size:0;">&nbsp;</td></tr>
-                    </table>
-                  </td>
-                  <!-- Name + hint -->
-                  <td style="vertical-align:middle;">
-                    <span style="display:block;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;font-weight:600;color:#F5F0E8;line-height:1.3;">Loyalty Pass</span>
-                    <span style="display:block;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;color:rgba(245,240,232,0.4);margin-top:2px;letter-spacing:0.1px;">Treasury Aesthetics · Tap to add to Wallet</span>
-                  </td>
-                  <!-- Download arrow -->
-                  <td style="vertical-align:middle;padding-left:10px;width:32px;text-align:right;">
-                    <table cellpadding="0" cellspacing="0">
-                      <tr><td style="width:28px;height:28px;background:rgba(201,165,90,0.12);border:1px solid rgba(201,165,90,0.3);border-radius:50%;text-align:center;vertical-align:middle;">
-                        <span style="color:#C9A55A;font-size:13px;line-height:1;">&#8595;</span>
-                      </td></tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      </a>
-      <p style="color:#B0A898;font-size:10px;margin:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;text-align:center;letter-spacing:0.2px;">
-        Open on iPhone &nbsp;·&nbsp; also attached below
-      </p>
+      <div style="width:40px;height:1px;background:rgba(201,165,90,0.3);margin:0 auto 0;"></div>
 
     </td></tr>
 
