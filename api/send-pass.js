@@ -4,7 +4,8 @@
 // No .pkpass file attachment — keeps email clean and avoids spam-filter triggers.
 // POST body: { clients: [{ id, firstName, lastName, email }] }
 
-import { markSent } from "../lib/kv.js";
+import { markSent }           from "../lib/kv.js";
+import { generatePassBuffer } from "../lib/generate-pass-buffer.js";
 
 function buildEmailHtml(firstName, fullName) {
   const baseUrl   = process.env.PASS_BASE_URL || "https://wallet-tau-green.vercel.app";
@@ -87,6 +88,10 @@ export default async function handler(req, res) {
     const name = `${firstName} ${lastName}`.trim();
 
     try {
+      // Generate the signed .pkpass — attached silently so iOS Mail shows
+      // its native "Add to Apple Wallet" banner without cluttering the email UI.
+      const passBuffer = await generatePassBuffer(name);
+
       const res2 = await fetch("https://api.resend.com/emails", {
         method:  "POST",
         headers: {
@@ -98,6 +103,13 @@ export default async function handler(req, res) {
           to:      [email],
           subject: "Your Treasury Aesthetics Loyalty Pass",
           html:    buildEmailHtml(firstName || "there", name),
+          attachments: [
+            {
+              filename:     "treasury-pass.pkpass",
+              content:      passBuffer.toString("base64"),
+              content_type: "application/vnd.apple.pkpass",
+            },
+          ],
         }),
       });
 
