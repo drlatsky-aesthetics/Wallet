@@ -6,7 +6,9 @@
 
 import { markSent } from "../lib/kv.js";
 
-function buildEmailHtml(firstName) {
+function buildEmailHtml(firstName, fullName) {
+  const baseUrl   = process.env.PASS_BASE_URL || "https://wallet-tau-green.vercel.app";
+  const passUrl   = `${baseUrl}/api/generate-pass?member=${encodeURIComponent(fullName)}`;
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -27,7 +29,7 @@ function buildEmailHtml(firstName) {
       <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
         <tr>
           <td style="background:#000000;border-radius:10px;border:1px solid rgba(201,165,90,0.5);">
-            <a href="https://treasuryaesthetics.ca" style="display:block;padding:11px 18px;text-decoration:none;">
+            <a href="${passUrl}" style="display:block;padding:11px 18px;text-decoration:none;">
               <table cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="padding-right:9px;vertical-align:middle;">
@@ -95,7 +97,7 @@ export default async function handler(req, res) {
           from:    process.env.RESEND_FROM_EMAIL || "Treasury Aesthetics <hello@treasuryaesthetics.ca>",
           to:      [email],
           subject: "Your Treasury Aesthetics Loyalty Pass",
-          html:    buildEmailHtml(firstName || "there"),
+          html:    buildEmailHtml(firstName || "there", name),
         }),
       });
 

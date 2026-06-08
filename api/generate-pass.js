@@ -5,8 +5,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  res.setHeader("Access-Control-Allow-Origin",
-    process.env.ALLOWED_ORIGIN || "https://wallet-tau-green.vercel.app");
+  // Allow requests from any origin — the pass endpoint is accessed directly
+  // from iOS Mail/Safari when the user taps the "Add to Apple Wallet" link.
+  res.setHeader("Access-Control-Allow-Origin", "*");
 
   try {
     const memberName   = req.query.member ? decodeURIComponent(req.query.member) : null;
