@@ -121,9 +121,15 @@ Wallet/
 
 ## API Endpoints
 
-### `GET /api/generate-pass?member=Jane+Smith`
+### `GET /api/generate-pass?member=Jane+Smith[&referral=CODE&slug=jane-smith&cid=CLIENT_ID]`
 Returns a signed `.pkpass` file. On iOS, the MIME type (`application/vnd.apple.pkpass`) triggers the native "Add to Wallet" sheet.  
-No auth required. `member` param is optional.
+No auth required. All params optional.
+- `cid` — Phorest client ID. Triggers a LIVE Phorest lookup: current name and membership tier (client categories) are used, the serial is stable (`treasury-{cid}` → Wallet replaces in place), and the pass's back carries a **Refresh My Pass** link pointing at this same URL. This is both the form's "Add to Wallet now" path and the self-refresh path.
+- `referral` — encoded in the QR + shown as altText. `slug` — links the plan page.
+
+### Membership tiers (TA coin colour + header label)
+Tier comes from **Phorest client categories** matched by name: `/vault/i` → gold coin + "Vault Member", `/reserve/i` → silver coin + "Reserve Member", otherwise bronze coin + "Member" (standard). Resolution lives in `lib/phorest.js` (`clientTier`).
+**Owner setup (one-time):** in Phorest, create client categories named e.g. "Treasury Vault" and "Treasury Reserve" and tag members. As of 2026-08-03 the business had only: Neighborhood Client, Staff, Student, VIP — so every pass renders standard/bronze until the categories exist. Passes pick up tier changes on next issue/refresh.
 
 ### `POST /api/request-pass`
 **Public — no auth required.** Called by the patient self-serve form.

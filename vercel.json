@@ -3,7 +3,7 @@
   "cleanUrls": true,
   "installCommand": "npm install --omit=dev",
   "functions": {
-    "api/generate-pass.js":  { "maxDuration": 10 },
+    "api/generate-pass.js":  { "maxDuration": 15 },
     "api/send-pass.js":      { "maxDuration": 60 },
     "api/request-pass.js":   { "maxDuration": 60 },
     "api/list-clients.js":   { "maxDuration": 30 },

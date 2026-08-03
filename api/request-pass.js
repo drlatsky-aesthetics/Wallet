@@ -8,33 +8,7 @@
 //   slug         — URL slug from the plans page (e.g. "jane-smith") — used as fallback name
 
 import { generatePassBuffer } from "../lib/generate-pass-buffer.js";
-
-const PHOREST_BASE = "https://platform.phorest.com/third-party-api-server/api/business";
-
-function phorestAuth() {
-  return "Basic " + Buffer.from(`${process.env.PHOREST_USERNAME}:${process.env.PHOREST_PASSWORD}`).toString("base64");
-}
-
-async function findClientByEmail(email) {
-  const bizId = encodeURIComponent(process.env.PHOREST_BUSINESS_ID);
-  // Search recent 2 years worth of clients and filter by email
-  const since = new Date(Date.now() - 730 * 24 * 60 * 60 * 1000).toISOString();
-  let page = 0;
-  while (true) {
-    const url = `${PHOREST_BASE}/${bizId}/client?updatedAt=${since}&page=${page}&size=100`;
-    const res = await fetch(url, {
-      headers: { Authorization: phorestAuth(), Accept: "application/json" },
-    });
-    if (!res.ok) break;
-    const data = await res.json();
-    const clients = data?._embedded?.clients ?? [];
-    const match = clients.find(c => c.email?.toLowerCase() === email.toLowerCase());
-    if (match) return match;
-    if (page + 1 >= (data?.page?.totalPages ?? 1)) break;
-    page++;
-  }
-  return null;
-}
+import { findClientByEmail, clientTier } from "../lib/phorest.js";
 
 function slugToName(slug) {
   return slug
@@ -111,6 +85,9 @@ export default async function handler(req, res) {
 
     const client = await findClientByEmail(email).catch(() => null);
 
+    // Membership tier from Phorest client categories (Vault/Reserve name match)
+    const membershipTier = client ? await clientTier(client).catch(() => "standard") : "standard";
+
     if (client) {
       firstName  = client.firstName || "";
       memberName = `${client.firstName ?? ""} ${client.lastName ?? ""}`.trim();
@@ -124,11 +101,21 @@ export default async function handler(req, res) {
       ? `https://plans.treasuryaesthetics.ca/${slug}`
       : process.env.PASS_TARGET_URL || "https://treasuryaesthetics.ca";
 
+    // Self-refresh link on the back of the pass — pulls fresh Phorest data
+    let refreshUrl = null;
+    if (client?.clientId) {
+      const qs = new URLSearchParams({ cid: client.clientId, referral: referralCode.trim() });
+      if (slug) qs.set("slug", slug);
+      refreshUrl = `https://${req.headers.host}/api/generate-pass?${qs.toString()}`;
+    }
+
     const passBuffer = await generatePassBuffer({
       memberName:   memberName || null,
       referralCode: referralCode.trim(),
       planUrl,
       clientId:     client?.clientId ?? null,
+      membershipTier,
+      refreshUrl,
     });
 
     const emailRes = await fetch("https://api.resend.com/emails", {

@@ -6,6 +6,7 @@
 // Body: { clients: [{ id, firstName, lastName, email }] }
 
 import { generatePassBuffer } from "../lib/generate-pass-buffer.js";
+import { getClient, clientTier, getCategoryNames } from "../lib/phorest.js";
 import { markSent }           from "../lib/kv.js";
 
 function buildEmailHtml(firstName) {
@@ -74,6 +75,8 @@ export default async function handler(req, res) {
   }
 
   const results = { sent: [], errors: [] };
+  // One category lookup per batch — tier resolution reuses it per client
+  const categoryNames = await getCategoryNames();
 
   for (const client of clients) {
     const { id, firstName, lastName, email } = client;
@@ -85,7 +88,13 @@ export default async function handler(req, res) {
     const name = `${firstName ?? ""} ${lastName ?? ""}`.trim();
 
     try {
-      const passBuffer = await generatePassBuffer({ memberName: name, clientId: id || null });
+      // Fresh Phorest fetch: current categories → tier-colored coin
+      const fresh = id ? await getClient(id) : null;
+      const membershipTier = fresh ? await clientTier(fresh, categoryNames) : "standard";
+      const refreshUrl = id
+        ? `https://${req.headers.host}/api/generate-pass?${new URLSearchParams({ cid: id }).toString()}`
+        : null;
+      const passBuffer = await generatePassBuffer({ memberName: name, clientId: id || null, membershipTier, refreshUrl });
 
       const emailRes = await fetch("https://api.resend.com/emails", {
         method:  "POST",
