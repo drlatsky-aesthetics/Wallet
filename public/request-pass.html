@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Treasury Aesthetics · Get Your Loyalty Pass</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:      #C9A55A;
+      --gold-l:    #E2C47C;
+      --charcoal:  #161614;
+      --mid:       #1E1E1C;
+      --light:     #2A2A27;
+      --cream:     #F5F0E8;
+      --cream-dim: rgba(245,240,232,0.55);
+    }
+    html, body {
+      min-height: 100vh;
+      background: var(--charcoal);
+      color: var(--cream);
+      font-family: Georgia, serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(201,165,90,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,165,90,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+    .wrapper {
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      animation: fadeUp 0.5s ease both;
+    }
+    .header { text-align: center; }
+    .rule { width: 60px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 10px auto; }
+    .eyebrow { font-size: 10px; letter-spacing: 4px; color: var(--gold); }
+    .headline { font-size: 28px; font-weight: 400; line-height: 1.2; margin: 6px 0; }
+    .subhead { font-size: 13px; color: var(--cream-dim); margin-top: 6px; }
+
+    .card {
+      width: 100%;
+      background: var(--mid);
+      border: 1px solid rgba(201,165,90,0.2);
+      border-radius: 18px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      color: var(--gold);
+    }
+    input {
+      background: var(--light);
+      border: 1px solid rgba(201,165,90,0.18);
+      border-radius: 10px;
+      padding: 13px 16px;
+      font-size: 15px;
+      font-family: system-ui, sans-serif;
+      color: var(--cream);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: rgba(201,165,90,0.55); }
+    input::placeholder { color: rgba(245,240,232,0.25); }
+
+    .hint {
+      font-size: 11px;
+      color: rgba(245,240,232,0.4);
+      line-height: 1.5;
+      font-family: system-ui, sans-serif;
+    }
+    .hint strong { color: var(--gold); font-weight: normal; }
+
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--gold);
+      border: none;
+      border-radius: 12px;
+      font-family: Georgia, serif;
+      font-size: 15px;
+      color: var(--charcoal);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      letter-spacing: 0.3px;
+    }
+    .submit-btn:hover { background: var(--gold-l); }
+    .submit-btn:active { transform: scale(0.98); }
+    .submit-btn:disabled { opacity: 0.5; cursor: default; }
+
+    .status {
+      text-align: center;
+      font-size: 13px;
+      font-family: system-ui, sans-serif;
+      min-height: 20px;
+      color: var(--cream-dim);
+      display: none;
+    }
+    .status.success { color: #7DBA84; display: block; }
+    .status.error   { color: #E07070; display: block; }
+    .status.loading { color: var(--gold); display: block; }
+
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: rgba(245,240,232,0.3);
+      letter-spacing: 0.3px;
+    }
+    .footer a { color: var(--gold); text-decoration: none; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <div class="header">
+    <div class="rule"></div>
+    <p class="eyebrow">TREASURY AESTHETICS</p>
+    <h1 class="headline" id="headline">Your Digital<br>Loyalty Pass</h1>
+    <div class="rule"></div>
+    <p class="subhead" id="subhead">Enter your details below to receive your personalised pass.</p>
+  </div>
+
+  <div class="card">
+    <label>
+      EMAIL ADDRESS
+      <input type="email" id="email" placeholder="your@email.com" autocomplete="email" />
+    </label>
+
+    <label>
+      PHOREST REFERRAL CODE
+      <input type="text" id="referral" placeholder="e.g. ABC-12345" autocomplete="off" />
+      <span class="hint">
+        Find this in the <strong>Phorest app</strong> under
+        <strong>Account → Refer a Friend</strong>. It looks like a short code
+        (e.g. <strong>ABC-12345</strong>).
+      </span>
+    </label>
+
+    <button class="submit-btn" id="submit-btn" onclick="requestPass()">
+      Send Me My Pass
+    </button>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <div class="footer">
+    Physician-led medical aesthetics · Toronto, ON<br>
+    <a href="https://treasuryaesthetics.ca">treasuryaesthetics.ca</a>
+  </div>
+
+</div>
+
+<script>
+  // Pre-fill name from URL slug if present
+  const params = new URLSearchParams(window.location.search);
+  const slug   = params.get("name") || params.get("slug") || "";
+  if (slug) {
+    const formatted = slug
+      .split("-")
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+    document.getElementById("headline").innerHTML =
+      `Hi, ${formatted.split(" ")[0]}.<br>Your Pass Awaits.`;
+    document.getElementById("subhead").textContent =
+      "Confirm your email and add your referral code to receive your personalised loyalty pass.";
+  }
+
+  async function requestPass() {
+    const email    = document.getElementById("email").value.trim();
+    const referral = document.getElementById("referral").value.trim();
+    const status   = document.getElementById("status");
+    const btn      = document.getElementById("submit-btn");
+
+    if (!email) { showStatus("error", "Please enter your email address."); return; }
+    if (!referral) { showStatus("error", "Please enter your referral code."); return; }
+
+    btn.disabled = true;
+    showStatus("loading", "Generating your pass…");
+
+    try {
+      const resp = await fetch("/api/request-pass", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ email, referralCode: referral, slug }),
+      });
+      const data = await resp.json();
+
+      if (resp.ok) {
+        showStatus("success", `✓ Pass sent to ${email}. Check your inbox — tap the attachment to add it to Apple Wallet.`);
+        btn.textContent = "Pass Sent!";
+      } else {
+        showStatus("error", data.error || "Something went wrong. Please try again.");
+        btn.disabled = false;
+      }
+    } catch {
+      showStatus("error", "Network error. Please check your connection and try again.");
+      btn.disabled = false;
+    }
+  }
+
+  function showStatus(type, msg) {
+    const el = document.getElementById("status");
+    el.className = "status " + type;
+    el.textContent = msg;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Treasury Aesthetics · Pass Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:     #C9A55A;
+      --gold-l:   #E2C47C;
+      --charcoal: #161614;
+      --mid:      #1E1E1C;
+      --light:    #2A2A27;
+      --cream:    #F5F0E8;
+      --cream-dim:rgba(245,240,232,0.55);
+      --green:    #7DBA84;
+      --red:      #E07070;
+      --amber:    #D4A843;
+    }
+    html, body {
+      min-height: 100vh;
+      background: var(--charcoal);
+      color: var(--cream);
+      font-family: system-ui, sans-serif;
+      padding: 32px 20px;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(201,165,90,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,165,90,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+    .wrapper { max-width: 780px; margin: 0 auto; position: relative; z-index: 1; }
+    .header { text-align: center; margin-bottom: 32px; }
+    .eyebrow { font-size: 10px; letter-spacing: 4px; color: var(--gold); margin-bottom: 6px; }
+    h1 { font-family: Georgia, serif; font-size: 26px; font-weight: 400; }
+    .rule { width: 60px; height: 1px; background: linear-gradient(90deg,transparent,var(--gold),transparent); margin: 10px auto; }
+
+    .auth-card {
+      background: var(--mid);
+      border: 1px solid rgba(201,165,90,0.2);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    label { display: flex; flex-direction: column; gap: 5px; font-size: 10px; letter-spacing: 2px; color: var(--gold); flex: 1; }
+    input {
+      background: var(--light);
+      border: 1px solid rgba(201,165,90,0.18);
+      border-radius: 8px;
+      padding: 11px 14px;
+      font-size: 14px;
+      color: var(--cream);
+      outline: none;
+      font-family: system-ui, sans-serif;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: rgba(201,165,90,0.55); }
+
+    .btn {
+      padding: 11px 22px;
+      background: var(--gold);
+      border: none;
+      border-radius: 8px;
+      font-family: Georgia, serif;
+      font-size: 14px;
+      color: var(--charcoal);
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .btn:hover { background: var(--gold-l); }
+    .btn:disabled { opacity: 0.45; cursor: default; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid rgba(201,165,90,0.3);
+      color: var(--cream-dim);
+      font-size: 13px;
+      padding: 8px 16px;
+    }
+    .btn-outline:hover { border-color: rgba(201,165,90,0.6); color: var(--cream); background: transparent; }
+
+    .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+    .toolbar-right { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+
+    .status-bar {
+      font-size: 12px;
+      color: var(--cream-dim);
+      min-height: 18px;
+      margin-bottom: 12px;
+    }
+    .status-bar.error { color: var(--red); }
+    .status-bar.success { color: var(--green); }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--gold);
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(201,165,90,0.15);
+    }
+    thead th:first-child { width: 40px; }
+    tbody tr { border-bottom: 1px solid rgba(201,165,90,0.07); transition: background 0.15s; }
+    tbody tr:hover { background: rgba(201,165,90,0.04); }
+    tbody td { padding: 10px 12px; font-size: 13px; }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+      box-shadow: 0 0 5px currentColor;
+    }
+    .dot-unsent { background: var(--amber);  color: var(--amber); }
+    .dot-sent   { background: var(--green);  color: var(--green); }
+    .dot-noemail{ background: rgba(245,240,232,0.2); color: rgba(245,240,232,0.2); }
+    .pill {
+      display: inline-block;
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      padding: 2px 7px;
+      border-radius: 20px;
+    }
+    .pill-unsent { background: rgba(212,168,67,0.15); color: var(--amber); border: 1px solid rgba(212,168,67,0.3); }
+    .pill-sent   { background: rgba(125,186,132,0.12); color: var(--green); border: 1px solid rgba(125,186,132,0.25); }
+    .pill-noemail{ background: rgba(245,240,232,0.05); color: rgba(245,240,232,0.3); border: 1px solid rgba(245,240,232,0.1); }
+
+    .send-btn-row {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .send-count { font-size: 13px; color: var(--cream-dim); }
+
+    .empty { text-align: center; padding: 40px; color: var(--cream-dim); font-size: 13px; }
+
+    .table-wrap {
+      background: var(--mid);
+      border: 1px solid rgba(201,165,90,0.18);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(201,165,90,0.3); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <div class="rule"></div>
+    <p class="eyebrow">TREASURY AESTHETICS</p>
+    <h1>Pass Admin</h1>
+    <div class="rule"></div>
+  </div>
+
+  <!-- Auth -->
+  <div class="auth-card">
+    <label>
+      ADMIN SECRET
+      <input type="password" id="secret" placeholder="CRON_SECRET value" autocomplete="off" />
+    </label>
+    <label style="max-width:120px;">
+      HOURS BACK
+      <input type="number" id="hours" value="720" min="1" max="8760" />
+    </label>
+    <button class="btn" id="load-btn" onclick="loadClients()">Load Clients</button>
+  </div>
+
+  <div class="status-bar" id="status"></div>
+
+  <div id="table-section" style="display:none;">
+    <div class="toolbar">
+      <span style="font-size:12px;color:var(--cream-dim);" id="filter-label"></span>
+      <div class="toolbar-right">
+        <button class="btn btn-outline" onclick="selectAll()">Select All Unsent</button>
+        <button class="btn btn-outline" onclick="deselectAll()">Deselect All</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>NAME</th>
+            <th>EMAIL</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+        <tbody id="client-tbody"></tbody>
+      </table>
+    </div>
+    <div class="send-btn-row">
+      <button class="btn" id="send-btn" onclick="sendSelected()">Send Pass to Selected</button>
+      <span class="send-count" id="send-count"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+  let allClients = [];
+
+  function getSecret() { return document.getElementById("secret").value.trim(); }
+
+  async function loadClients() {
+    const secret = getSecret();
+    if (!secret) { setStatus("error", "Enter the admin secret."); return; }
+    const hours  = document.getElementById("hours").value || "720";
+    const btn    = document.getElementById("load-btn");
+
+    btn.disabled = true;
+    setStatus("", '<span class="spinner"></span>Loading clients from Phorest…');
+
+    try {
+      const res  = await fetch(`/api/list-clients?hours=${hours}`, {
+        headers: { Authorization: `Bearer ${secret}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+
+      allClients = data.clients ?? [];
+      renderTable(allClients);
+      updateSendCount();
+
+      const unsent = allClients.filter(c => c.status === "unsent").length;
+      const sent   = allClients.filter(c => c.status === "sent").length;
+      const noEmail= allClients.filter(c => c.status === "no-email").length;
+      setStatus("", `${data.total} clients — ${unsent} unsent, ${sent} sent, ${noEmail} no email`);
+      document.getElementById("table-section").style.display = "block";
+    } catch (e) {
+      setStatus("error", "Failed: " + e.message);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function renderTable(clients) {
+    const tbody = document.getElementById("client-tbody");
+    if (!clients.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty">No clients found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = clients.map((c, i) => {
+      const checked    = c.status === "unsent" ? "checked" : "";
+      const disabled   = c.status === "no-email" ? "disabled" : "";
+      const pillClass  = c.status === "sent" ? "pill-sent" : c.status === "unsent" ? "pill-unsent" : "pill-noemail";
+      const pillLabel  = c.status === "sent" ? "SENT" : c.status === "unsent" ? "UNSENT" : "NO EMAIL";
+      return `<tr>
+        <td><input type="checkbox" data-id="${c.id}" data-idx="${i}" ${checked} ${disabled} onchange="updateSendCount()"></td>
+        <td>${esc(c.firstName)} ${esc(c.lastName)}</td>
+        <td style="color:var(--cream-dim);">${esc(c.email || "—")}</td>
+        <td><span class="pill ${pillClass}">${pillLabel}</span></td>
+      </tr>`;
+    }).join("");
+  }
+
+  function selectAll() {
+    document.querySelectorAll("#client-tbody input[type=checkbox]:not(:disabled)").forEach(cb => {
+      const idx = parseInt(cb.dataset.idx);
+      if (allClients[idx]?.status === "unsent") cb.checked = true;
+    });
+    updateSendCount();
+  }
+
+  function deselectAll() {
+    document.querySelectorAll("#client-tbody input[type=checkbox]").forEach(cb => cb.checked = false);
+    updateSendCount();
+  }
+
+  function updateSendCount() {
+    const n = document.querySelectorAll("#client-tbody input[type=checkbox]:checked").length;
+    document.getElementById("send-count").textContent = n > 0 ? `${n} selected` : "";
+  }
+
+  async function sendSelected() {
+    const secret = getSecret();
+    if (!secret) { setStatus("error", "Enter the admin secret."); return; }
+
+    const checked = [...document.querySelectorAll("#client-tbody input[type=checkbox]:checked")];
+    if (!checked.length) { setStatus("error", "Select at least one client."); return; }
+
+    const clients = checked.map(cb => {
+      const idx = parseInt(cb.dataset.idx);
+      return allClients[idx];
+    }).filter(Boolean);
+
+    const btn = document.getElementById("send-btn");
+    btn.disabled = true;
+    setStatus("", `<span class="spinner"></span>Sending to ${clients.length} client(s)…`);
+
+    try {
+      const res  = await fetch("/api/send-pass", {
+        method:  "POST",
+        headers: {
+          Authorization:  `Bearer ${secret}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ clients }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+
+      const sent   = data.sent?.length   ?? 0;
+      const errors = data.errors?.length ?? 0;
+      setStatus(errors ? "error" : "success",
+        `✓ ${sent} sent${errors ? ` · ${errors} error(s): ${data.errors.map(e => e.error).join(", ")}` : ""}`
+      );
+
+      // Reload to reflect new sent status
+      if (sent > 0) setTimeout(() => loadClients(), 1200);
+    } catch (e) {
+      setStatus("error", "Send failed: " + e.message);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function setStatus(type, msg) {
+    const el = document.getElementById("status");
+    el.className = "status-bar" + (type ? " " + type : "");
+    el.innerHTML = msg;
+  }
+
+  function esc(s) {
+    return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  // Allow Enter key in secret field
+  document.getElementById("secret").addEventListener("keydown", e => {
+    if (e.key === "Enter") loadClients();
+  });
+</script>
+</body>
+</html>
