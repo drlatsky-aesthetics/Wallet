@@ -58,12 +58,35 @@ curl "https://api.vercel.com/v9/projects/prj_Nf88NJ62XxW0mkRZWK49N0VMZGU9/env/{E
 **Vercel project details:**
 - Project ID: `prj_Nf88NJ62XxW0mkRZWK49N0VMZGU9`
 - Team ID: `team_i2XzT32nSYV58kXQ4JTOAtsT`
-- Vercel token: `{VERCEL_TOKEN}`
+- Vercel token: stored encrypted at `certificates/vercel.token.enc` in this repo
 
-**Retrieve Phorest password:**
+**Decrypt the Vercel token (passphrase: `2896Laser`):**
+```bash
+openssl enc -d -aes-256-cbc -pbkdf2 -a \
+  -in certificates/vercel.token.enc \
+  -pass pass:2896Laser
+```
+
+**Use it inline for any API call:**
+```bash
+TOKEN=$(openssl enc -d -aes-256-cbc -pbkdf2 -a -in certificates/vercel.token.enc -pass pass:2896Laser)
+```
+
+**List all Vercel env vars:**
+```bash
+curl "https://api.vercel.com/v9/projects/prj_Nf88NJ62XxW0mkRZWK49N0VMZGU9/env?teamId=team_i2XzT32nSYV58kXQ4JTOAtsT" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Retrieve Phorest password (env var ID: `JllcHwBZXoLrp5ou`):**
 ```bash
 curl "https://api.vercel.com/v9/projects/prj_Nf88NJ62XxW0mkRZWK49N0VMZGU9/env/JllcHwBZXoLrp5ou?teamId=team_i2XzT32nSYV58kXQ4JTOAtsT&decrypt=true" \
-  -H "Authorization: Bearer {VERCEL_TOKEN}"
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Deploy to production via Vercel CLI:**
+```bash
+vercel --token $TOKEN --prod
 ```
 
 ---
