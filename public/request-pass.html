@@ -162,9 +162,30 @@
       from { opacity: 0; transform: translateY(10px); }
       to   { opacity: 1; transform: translateY(0); }
     }
+
+    /* Anchored close — returns to the plan page (or clinic site) */
+    .close-x {
+      position: fixed;
+      top: max(16px, env(safe-area-inset-top, 0px));
+      right: 16px;
+      z-index: 10;
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(30,30,28,0.85);
+      border: 1px solid rgba(201,165,90,0.4);
+      border-radius: 50%;
+      color: var(--gold);
+      font-size: 16px;
+      font-family: system-ui, sans-serif;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.1s;
+    }
+    .close-x:hover { border-color: var(--gold); }
+    .close-x:active { transform: scale(0.94); }
   </style>
 </head>
 <body>
+<button class="close-x" onclick="closePage()" aria-label="Close">✕</button>
 <div class="wrapper">
 
   <div class="header">
@@ -269,6 +290,17 @@
       showStatus("error", "Network error. Please check your connection and try again.");
       btn.disabled = false;
     }
+  }
+
+  function closePage() {
+    // Opened from the plan page via target=_blank — window.close() works there.
+    window.close();
+    // Fallback (direct visits / QR scans): back to their plan, else the clinic site.
+    setTimeout(() => {
+      window.location.href = slug
+        ? `https://plans.treasuryaesthetics.ca/${slug}`
+        : "https://treasuryaesthetics.ca";
+    }, 250);
   }
 
   function showStatus(type, msg) {
