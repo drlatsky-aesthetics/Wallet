@@ -46,6 +46,9 @@ function buildEmailHtml(firstName) {
           </td>
         </tr>
       </table>
+      <p style="color:rgba(245,240,232,0.5);font-size:12px;line-height:1.6;margin:20px 0 0;">
+        Tip: once your pass is in Wallet, tap the <strong style="color:#C9A55A;">&bull;&bull;&bull;</strong> in its top corner to flip it over &mdash; your personal plan link, booking, and a Refresh&nbsp;My&nbsp;Pass button live on the back.
+      </p>
       <p style="color:rgba(245,240,232,0.35);font-size:11px;margin:20px 0 0;">
         Open this email on your iPhone for the best experience.
       </p>
