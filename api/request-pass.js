@@ -154,7 +154,9 @@ export default async function handler(req, res) {
       throw new Error(`Email send failed: ${err}`);
     }
 
-    return res.status(200).json({ ok: true, email });
+    // memberName lets the form's "Add to Wallet now" button request an
+    // identical pass via GET /api/generate-pass without a second Phorest lookup.
+    return res.status(200).json({ ok: true, email, memberName: memberName || null });
 
   } catch (err) {
     console.error("[Treasury] request-pass failed:", err);
