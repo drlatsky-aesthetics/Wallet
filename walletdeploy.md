@@ -317,22 +317,24 @@ Vercel auto-deploys on push. Production URL remains `https://wallet-tau-green.ve
 
 ## Pass Design
 
+Redesigned 2026-08-03 on the patient-plan-page palette (owner-approved preview).
+
 | Field | Value |
 |---|---|
 | Type | `storeCard` |
-| Background | `rgb(22, 22, 20)` — charcoal `#161614` |
-| Foreground | `rgb(245, 240, 232)` — cream `#F5F0E8` |
-| Labels | `rgb(201, 165, 90)` — gold `#C9A55A` |
-| Logo text | `Treasury Aesthetics` |
-| Header | `MEMBER` (right-aligned) |
-| Primary field | Patient name (or `Treasury Aesthetics` if unknown) |
-| Secondary fields | Location: `Toronto, ON` · Portal: `treasuryaesthetics.ca` |
-| Auxiliary fields | Issue date · Pass type: `Loyalty Pass` |
-| QR content | Referral code (self-serve) or `PASS_TARGET_URL` (admin) |
-| Back — plan link | Patient's personal plan URL (`plans.treasuryaesthetics.ca/slug`) |
-| Back — contact | `aesthetics@treasuryhealth.ca` |
+| Background | `rgb(14, 13, 11)` — charcoal-black `#0E0D0B` (plan-page BG) |
+| Foreground | `rgb(232, 228, 220)` — warm cream `#E8E4DC` (plan-page TEXT) |
+| Labels | `rgb(201, 169, 74)` — gold `#C9A94A` (plan-page GOLD) |
+| Logo | Gold-ringed serif `TA` coin + logo text `Treasury Aesthetics` |
+| Header | `TREASURY / Member` (right-aligned) |
+| Strip artwork | Dark gradient band, gold hairlines top+bottom, faint serif `TA` watermark, tagline `PHYSICIAN-LED MEDICAL AESTHETICS` bottom-right |
+| Primary field | Patient name, no label — renders on the strip (left; Apple fixes placement) |
+| Secondary fields | Location: `Toronto, ON` · Member since: `<Month Year>` |
+| Auxiliary fields | none (declutter — details live on the back) |
+| QR content | Referral code (self-serve) or `PASS_TARGET_URL` (admin); altText = referral code |
+| Back | About · Plan link (`plans.treasuryaesthetics.ca/slug`) · Book (`treasuryaesthetics.ca`) · Contact · Terms |
 
-Pass images live in `assets/pass/` — `icon.png` (29×29), `icon@2x.png` (58×58), `icon@3x.png` (87×87), `logo.png` (160×50), `logo@2x.png` (320×100).
+Pass images live in `assets/pass/` — `icon(@2x,@3x).png` (29/58/87), `logo(@2x).png` (50/100 coin), `strip(@2x,@3x).png` (375×123 / 750×246 / 1125×369). All generated; regenerate with Pillow if the brand palette changes (see git history for the generation script).
 
 ---
 
