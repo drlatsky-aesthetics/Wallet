@@ -128,6 +128,7 @@ export default async function handler(req, res) {
       memberName:   memberName || null,
       referralCode: referralCode.trim(),
       planUrl,
+      clientId:     client?.clientId ?? null,
     });
 
     const emailRes = await fetch("https://api.resend.com/emails", {
@@ -154,9 +155,10 @@ export default async function handler(req, res) {
       throw new Error(`Email send failed: ${err}`);
     }
 
-    // memberName lets the form's "Add to Wallet now" button request an
-    // identical pass via GET /api/generate-pass without a second Phorest lookup.
-    return res.status(200).json({ ok: true, email, memberName: memberName || null });
+    // memberName + clientId let the form's "Add to Wallet now" button request
+    // an identical pass (same stable serial → Wallet replaces, not duplicates)
+    // via GET /api/generate-pass without a second Phorest lookup.
+    return res.status(200).json({ ok: true, email, memberName: memberName || null, clientId: client?.clientId ?? null });
 
   } catch (err) {
     console.error("[Treasury] request-pass failed:", err);

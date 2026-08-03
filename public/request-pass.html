@@ -258,6 +258,7 @@
         if (data.memberName) qs.set("member", data.memberName);
         qs.set("referral", referral);
         if (slug) qs.set("slug", slug);
+        if (data.clientId) qs.set("cid", data.clientId);
         document.getElementById("wallet-now-btn").href = "/api/generate-pass?" + qs.toString();
         document.getElementById("wallet-now").classList.add("show");
       } else {

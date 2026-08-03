@@ -20,7 +20,10 @@ export default async function handler(req, res) {
     // Slug is interpolated into the plan-page URL — allow only slug characters
     const slug = typeof req.query.slug === "string" && /^[a-z0-9-]{1,80}$/.test(req.query.slug) ? req.query.slug : null;
     const planUrl = slug ? `https://plans.treasuryaesthetics.ca/${slug}` : null;
-    const pkpassBuffer = await generatePassBuffer({ memberName, referralCode, planUrl });
+    // Stable serial when the Phorest client ID is known — matches the emailed
+    // pass so adding both replaces rather than duplicates.
+    const clientId = typeof req.query.cid === "string" && /^[\w=-]{1,64}$/.test(req.query.cid) ? req.query.cid : null;
+    const pkpassBuffer = await generatePassBuffer({ memberName, referralCode, planUrl, clientId });
 
     res.setHeader("Content-Type",   "application/vnd.apple.pkpass");
     res.setHeader("Content-Length", pkpassBuffer.length);

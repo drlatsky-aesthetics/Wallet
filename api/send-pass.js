@@ -85,7 +85,7 @@ export default async function handler(req, res) {
     const name = `${firstName ?? ""} ${lastName ?? ""}`.trim();
 
     try {
-      const passBuffer = await generatePassBuffer({ memberName: name });
+      const passBuffer = await generatePassBuffer({ memberName: name, clientId: id || null });
 
       const emailRes = await fetch("https://api.resend.com/emails", {
         method:  "POST",
