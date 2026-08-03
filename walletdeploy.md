@@ -141,7 +141,7 @@ Flow:
 1. Searches Phorest for a client matching the email (used to get their real name)
 2. Falls back to slug → formatted name if Phorest lookup fails
 3. Builds pass with referral code as QR content
-4. Links patient's personal plan page (`https://www.treasuryaesthetics.ca/{slug}`) in back fields
+4. Links patient's personal plan page (`https://plans.treasuryaesthetics.ca/{slug}`) in back fields
 5. Emails `.pkpass` as attachment via Resend
 
 ### `GET /api/list-clients?hours=720`
@@ -175,14 +175,14 @@ Request body:
 
 ## Patient Self-Serve Integration
 
-The patient-facing plans site at `www.treasuryaesthetics.ca/[firstname-lastname]` needs a button that links to the pass request form.
+The patient-facing plans site at `plans.treasuryaesthetics.ca/[firstname-lastname]` needs a button that links to the pass request form.
 
 **Button URL format:**
 ```
 https://wallet-tau-green.vercel.app/request-pass?name=firstname-lastname
 ```
 
-**Example** — for a patient at `www.treasuryaesthetics.ca/jane-smith`:
+**Example** — for a patient at `plans.treasuryaesthetics.ca/jane-smith`:
 ```
 https://wallet-tau-green.vercel.app/request-pass?name=jane-smith
 ```
@@ -329,7 +329,7 @@ Vercel auto-deploys on push. Production URL remains `https://wallet-tau-green.ve
 | Secondary fields | Location: `Toronto, ON` · Portal: `treasuryaesthetics.ca` |
 | Auxiliary fields | Issue date · Pass type: `Loyalty Pass` |
 | QR content | Referral code (self-serve) or `PASS_TARGET_URL` (admin) |
-| Back — plan link | Patient's personal plan URL (`www.treasuryaesthetics.ca/slug`) |
+| Back — plan link | Patient's personal plan URL (`plans.treasuryaesthetics.ca/slug`) |
 | Back — contact | `aesthetics@treasuryhealth.ca` |
 
 Pass images live in `assets/pass/` — `icon.png` (29×29), `icon@2x.png` (58×58), `icon@3x.png` (87×87), `logo.png` (160×50), `logo@2x.png` (320×100).

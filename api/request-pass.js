@@ -119,9 +119,9 @@ export default async function handler(req, res) {
       firstName  = memberName.split(" ")[0];
     }
 
-    // Build plan page URL from slug (e.g. https://www.treasuryaesthetics.ca/jane-smith)
+    // Build plan page URL from slug (e.g. https://plans.treasuryaesthetics.ca/jane-smith)
     const planUrl = slug
-      ? `https://www.treasuryaesthetics.ca/${slug}`
+      ? `https://plans.treasuryaesthetics.ca/${slug}`
       : process.env.PASS_TARGET_URL || "https://treasuryaesthetics.ca";
 
     const passBuffer = await generatePassBuffer({
