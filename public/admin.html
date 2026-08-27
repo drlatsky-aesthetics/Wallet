@@ -57,13 +57,13 @@
     .field-group { display: flex; flex-direction: column; gap: 7px; }
     label { font-size: 10px; letter-spacing: 2px; color: var(--gold); }
 
-    input[type="password"], select {
+    input[type="password"], input[type="url"], select {
       width: 100%; background: var(--light); border: 1px solid rgba(201,165,90,0.22);
       border-radius: 10px; padding: 11px 14px; color: var(--cream);
       font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       outline: none; transition: border-color .2s;
     }
-    input[type="password"]:focus, select:focus { border-color: rgba(201,165,90,0.55); }
+    input[type="password"]:focus, input[type="url"]:focus, select:focus { border-color: rgba(201,165,90,0.55); }
     select option { background: #2A2A27; }
 
     /* Buttons */
@@ -239,6 +239,35 @@
     <div class="send-summary" id="send-summary"></div>
   </div>
 
+  <!-- Patient page link (pass ↔ treatment-plan URL coordination) -->
+  <div class="card animate hidden" id="link-card">
+    <div class="field-group">
+      <label>PATIENT PAGE LINK</label>
+      <p style="font-size:12px;color:var(--faint);font-family:-apple-system,sans-serif;line-height:1.6;">
+        Attach a patient's private treatment-plan URL to their wallet pass.
+        New passes link to it directly, and passes already in wallets pick it
+        up on refresh. Links are set automatically when a plan is emailed from
+        the Treasury agent — use this to set or fix one by hand.
+      </p>
+    </div>
+    <div class="field-group">
+      <label for="link-client">CLIENT</label>
+      <select id="link-client" onchange="linkClientChanged()"></select>
+    </div>
+    <div class="field-group">
+      <label for="link-url">PLAN URL</label>
+      <input type="url" id="link-url" placeholder="https://plans.treasuryaesthetics.ca/…"
+             autocomplete="off" spellcheck="false" />
+    </div>
+    <div class="row">
+      <button class="btn btn-gold" style="flex:1" id="link-save-btn" onclick="savePlanLink(false)">
+        <div class="spinner"></div><span id="link-save-label">Save Link</span>
+      </button>
+      <button class="btn btn-outline" id="link-clear-btn" onclick="savePlanLink(true)">Clear</button>
+    </div>
+    <p id="link-status" style="font-size:12px;font-family:-apple-system,sans-serif;color:var(--faint);"></p>
+  </div>
+
 </div>
 
 <script>
@@ -257,6 +286,7 @@
 
     document.getElementById("list-card").classList.add("hidden");
     document.getElementById("results-card").classList.add("hidden");
+    document.getElementById("link-card").classList.add("hidden");
 
     try {
       const hours = document.getElementById("window").value;
@@ -272,7 +302,9 @@
       allClients.forEach(c => { clientStatus[c.id] = c.status; });
 
       renderClientList();
+      renderLinkCard();
       document.getElementById("list-card").classList.remove("hidden");
+      document.getElementById("link-card").classList.remove("hidden");
       updateSelCount();
 
     } catch (e) {
@@ -481,6 +513,64 @@
     } finally {
       setLoading(btn, label, false, "");
       updateSelCount();
+    }
+  }
+
+  // ── Patient page link card ──────────────────────────────────────────────────
+
+  function renderLinkCard() {
+    const sel = document.getElementById("link-client");
+    sel.innerHTML = `<option value="">Select a client…</option>` +
+      allClients.map(c =>
+        `<option value="${esc(c.id)}">${esc(fullName(c))}${c.planUrl ? " · linked" : ""}</option>`
+      ).join("");
+    document.getElementById("link-url").value = "";
+    document.getElementById("link-status").textContent = "";
+  }
+
+  function linkClientChanged() {
+    const id = document.getElementById("link-client").value;
+    const c  = allClients.find(x => x.id === id);
+    document.getElementById("link-url").value = c?.planUrl || "";
+    document.getElementById("link-status").textContent =
+      c?.planUrl ? "This client's pass links to their patient page." :
+      c ? "No patient page linked — the pass falls back to the clinic site." : "";
+  }
+
+  async function savePlanLink(clear) {
+    const secret = document.getElementById("secret").value.trim();
+    const id     = document.getElementById("link-client").value;
+    const url    = clear ? null : document.getElementById("link-url").value.trim();
+    const status = document.getElementById("link-status");
+    if (!id) { status.textContent = "Choose a client first."; return; }
+    if (!clear && !/^https:\/\//.test(url)) { status.textContent = "Enter a full https:// URL."; return; }
+
+    const btn   = document.getElementById("link-save-btn");
+    const label = document.getElementById("link-save-label");
+    setLoading(btn, label, true, "");
+
+    try {
+      const resp = await fetch("/api/pass-url", {
+        method:  "POST",
+        headers: { "Authorization": `Bearer ${secret}`, "Content-Type": "application/json" },
+        body:    JSON.stringify({ clientId: id, url }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) { status.textContent = data.error || "Save failed."; return; }
+
+      const c = allClients.find(x => x.id === id);
+      if (c) c.planUrl = url;
+      // Refresh the "· linked" markers without losing the selection
+      renderLinkCard();
+      document.getElementById("link-client").value = id;
+      linkClientChanged();
+      status.textContent = clear
+        ? "Link cleared — the pass reverts to the clinic site on next refresh."
+        : "Saved — new passes link here; passes already in wallets update on refresh.";
+    } catch (e) {
+      status.textContent = "Network error — try again.";
+    } finally {
+      setLoading(btn, label, false, "Save Link");
     }
   }
 

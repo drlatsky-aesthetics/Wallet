@@ -3,6 +3,7 @@
 // pass-sent status from Vercel KV. No emails sent.
 
 import { getSentList } from "../lib/kv.js";
+import { listPlanUrls } from "../lib/pass-store.js";
 
 const PHOREST_BASE = "https://platform.phorest.com/third-party-api-server/api/business";
 
@@ -44,9 +45,10 @@ export default async function handler(req, res) {
   const since = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
 
   try {
-    const [phorestClients, sentRaw] = await Promise.all([
+    const [phorestClients, sentRaw, planUrls] = await Promise.all([
       fetchAllClients(since),
       getSentList(),
+      listPlanUrls(),
     ]);
 
     const sentIds = new Set(sentRaw ?? []);
@@ -56,6 +58,7 @@ export default async function handler(req, res) {
       firstName: c.firstName ?? "",
       lastName:  c.lastName  ?? "",
       email:     c.email     ?? null,
+      planUrl:   planUrls[c.clientId] ?? null,
       status:    sentIds.has(c.clientId)
         ? "sent"
         : c.email ? "unsent" : "no-email",

@@ -2,10 +2,12 @@
   "version": 2,
   "installCommand": "npm install --omit=dev",
   "functions": {
-    "api/generate-pass.js":  { "maxDuration": 10 },
-    "api/sync-passes.js":    { "maxDuration": 60 },
-    "api/list-clients.js":   { "maxDuration": 30 },
-    "api/send-pass.js":      { "maxDuration": 60 }
+    "api/generate-pass.js":     { "maxDuration": 10 },
+    "api/sync-passes.js":       { "maxDuration": 60 },
+    "api/list-clients.js":      { "maxDuration": 30 },
+    "api/send-pass.js":         { "maxDuration": 60 },
+    "api/pass-url.js":          { "maxDuration": 30 },
+    "api/wallet/[...path].js":  { "maxDuration": 15 }
   },
   "headers": [
     {
