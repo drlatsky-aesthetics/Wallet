@@ -131,7 +131,9 @@ Set automatically by Vercel when you create a KV store and link it to the projec
 |---|---|
 | `CRON_SECRET` | Password for admin panel access key field + cron auth header |
 | `PASS_BASE_URL` | Production URL, e.g. `https://wallet-tau-green.vercel.app` |
-| `PASS_TARGET_URL` | URL encoded in QR code, e.g. `https://treasuryhealth.ca` |
+| `PASS_TARGET_URL` | FALLBACK URL encoded in QR code when no clientId / no `PASS_LINK_SECRET` |
+| `PASS_LINK_SECRET` | Shared secret with the treasury-agent project (SAME value in both). When set, passes generated with a clientId encode a permanent per-client plan pointer `PLANS_BASE_URL/w/<HMAC(secret, clientId)>` in the QR — treasury-agent 302s it to the client's current treatment-plan page (`lib/plan-link.js`; algorithm pinned by treasury-agent's tests). |
+| `PLANS_BASE_URL` | Treatment-plans host, default `https://plans.treasuryaesthetics.ca` |
 
 ### Optional / Automation
 
@@ -209,7 +211,23 @@ All `.enc` files are AES-256-CBC with pbkdf2. Decrypt with:
 
 ---
 
-## Recent Changes (this session)
+## Recent Changes (2026-08-28)
+
+- **Per-client plan links in pass QR codes** — new `lib/plan-link.js`:
+  when `PASS_LINK_SECRET` + a `clientId` are present, the QR (and the
+  "Patient Portal" back field) encode `PLANS_BASE_URL/w/<HMAC(secret,
+  clientId)>` — a permanent pointer the treasury-agent app redirects to the
+  client's current treatment-plan page. Plan URLs can change freely without
+  re-issuing passes; clients without a plan land on the clinic site until
+  one exists. Falls back to `PASS_TARGET_URL` as before when unconfigured.
+- `api/sync-passes.js` now passes `client.clientId` into pass generation, so
+  sync-sent passes get the stable `treasury-<clientId>` serial (re-adds
+  replace instead of duplicating) and the plan-link QR — matching send-pass.
+- Setup: set `PASS_LINK_SECRET` (same value as the treasury-agent project)
+  and `PLANS_BASE_URL` in Vercel, then re-send passes from the admin panel —
+  same serial means each patient's tap replaces their old generic-QR pass.
+
+## Recent Changes (earlier session)
 
 - Stopped hourly cron spam — removed from `vercel.json`, added `SYNC_ENABLED` guard
 - Switched email deduplication from broken env-var approach to Vercel KV

@@ -36,7 +36,13 @@ async function sendPassEmail(client) {
   const firstName = client.firstName || "there";
   if (!client.email) return { skipped: true, reason: "no email" };
 
-  const passBuffer = await generatePassBuffer(`${client.firstName} ${client.lastName}`.trim());
+  // clientId gives the pass its stable serial (re-adds replace, never
+  // duplicate) and its per-client plan link QR (lib/plan-link.js).
+  const passBuffer = await generatePassBuffer(
+    `${client.firstName} ${client.lastName}`.trim(),
+    "standard",
+    client.clientId
+  );
 
   const res = await fetch("https://api.resend.com/emails", {
     method:  "POST",
