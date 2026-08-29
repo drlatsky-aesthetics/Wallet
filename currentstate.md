@@ -80,11 +80,14 @@ api/sync-passes.js  ──→  Resend (email)  ──→  Patient inbox
 
 ### Certificates / Secrets
 
+Secrets live ONLY in Vercel environment variables — never in this repo
+(2026-08 privacy overhaul: the previously committed encrypted credential
+blobs were removed and the history scrubbed; all affected credentials
+were rotated).
+
 | File | Purpose |
 |---|---|
-| `certificates/resend.enc` | Encrypted Resend API key. |
-| `certificates/phorest.enc` | Encrypted Phorest credentials. |
-| `certificates/README.md` | Setup instructions for Apple certs. |
+| `certificates/README.md` | Setup instructions for Apple certs (conversion only — never commit real certs). |
 
 ---
 
@@ -105,7 +108,7 @@ api/sync-passes.js  ──→  Resend (email)  ──→  Patient inbox
 
 | Variable | Description |
 |---|---|
-| `RESEND_API_KEY` | Resend API key (from `certificates/resend.enc`) |
+| `RESEND_API_KEY` | Resend API key (Vercel env only) |
 | `RESEND_FROM_EMAIL` | `Treasury Aesthetics <hello@treasuryaesthetics.ca>` |
 
 ### Phorest (required for sync)
@@ -113,7 +116,7 @@ api/sync-passes.js  ──→  Resend (email)  ──→  Patient inbox
 | Variable | Description |
 |---|---|
 | `PHOREST_USERNAME` | `global/aesthetics@treasuryhealth.ca` |
-| `PHOREST_PASSWORD` | (from `certificates/phorest.enc`) |
+| `PHOREST_PASSWORD` | Phorest API password (Vercel env only) |
 | `PHOREST_BUSINESS_ID` | `CPCJEF0k5-6Qf8gqAtuNPQ===` |
 
 ### Vercel KV (required for deduplication)
@@ -203,13 +206,6 @@ The hourly cron was removed from `vercel.json` after it was discovered to be ema
 
 ---
 
-## Encrypted Credentials
-
-All `.enc` files are AES-256-CBC with pbkdf2. Decrypt with:
-```bash
-```
-
----
 
 ## Recent Changes (2026-08-28)
 
