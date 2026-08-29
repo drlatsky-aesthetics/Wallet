@@ -8,7 +8,7 @@ import { markSent }           from "../lib/kv.js";
 import { generatePassBuffer } from "../lib/generate-pass-buffer.js";
 
 function buildEmailHtml(firstName, fullName, tier = "standard", clientId = null) {
-  const baseUrl = process.env.PASS_BASE_URL || "https://wallet-tau-green.vercel.app";
+  const baseUrl = process.env.PASS_BASE_URL || "https://passes.treasuryaesthetics.ca";
   const passUrl = `${baseUrl}/api/generate-pass?member=${encodeURIComponent(fullName)}&tier=${encodeURIComponent(tier)}${clientId ? `&clientId=${encodeURIComponent(clientId)}` : ""}`;
   // Note: email is designed for iOS Mail light mode — body backgrounds are stripped by iOS Mail.
   // Cream (#FAF8F4) background on the card gives a warm luxury feel that survives rendering.

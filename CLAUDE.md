@@ -23,5 +23,5 @@ This is the **Treasury Aesthetics Apple Wallet pass system** — a Vercel-hosted
 
 - GitHub: `drlatsky-aesthetics/Wallet`
 - Production branch: `main`
-- Production URL: `https://wallet-tau-green.vercel.app`
+- Production URL: `https://passes.treasuryaesthetics.ca`
 - See `currentstate.md` for full architecture, file map, and env vars

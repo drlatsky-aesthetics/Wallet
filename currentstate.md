@@ -34,10 +34,10 @@ api/sync-passes.js  ──→  Resend (email)  ──→  Patient inbox
 
 | Purpose | URL |
 |---|---|
-| Pass landing page | `https://wallet-tau-green.vercel.app/wallet.html` |
-| Admin panel | `https://wallet-tau-green.vercel.app/admin.html` |
-| Pass API | `https://wallet-tau-green.vercel.app/api/generate-pass` |
-| Sync API | `https://wallet-tau-green.vercel.app/api/sync-passes` |
+| Pass landing page | `https://passes.treasuryaesthetics.ca/wallet.html` |
+| Admin panel | `https://passes.treasuryaesthetics.ca/admin.html` |
+| Pass API | `https://passes.treasuryaesthetics.ca/api/generate-pass` |
+| Sync API | `https://passes.treasuryaesthetics.ca/api/sync-passes` |
 | GitHub repo | `https://github.com/drlatsky-aesthetics/Wallet` |
 | Vercel project | `prj_Nf88NJ62XxW0mkRZWK49N0VMZGU9` |
 | Vercel team | `team_i2XzT32nSYV58kXQ4JTOAtsT` |
@@ -133,7 +133,7 @@ Set automatically by Vercel when you create a KV store and link it to the projec
 | Variable | Description |
 |---|---|
 | `CRON_SECRET` | Password for admin panel access key field + cron auth header |
-| `PASS_BASE_URL` | Production URL, e.g. `https://wallet-tau-green.vercel.app` |
+| `PASS_BASE_URL` | Production URL, e.g. `https://passes.treasuryaesthetics.ca` |
 | `PASS_TARGET_URL` | FALLBACK URL encoded in QR code when no clientId / no `PASS_LINK_SECRET` |
 | `PASS_LINK_SECRET` | Shared secret with the treasury-agent project (SAME value in both). When set, passes generated with a clientId encode a permanent per-client plan pointer `PLANS_BASE_URL/w/<HMAC(secret, clientId)>` in the QR — treasury-agent 302s it to the client's current treatment-plan page (`lib/plan-link.js`; algorithm pinned by treasury-agent's tests). |
 | `PLANS_BASE_URL` | Treatment-plans host, default `https://plans.treasuryaesthetics.ca` |
@@ -158,7 +158,7 @@ Set automatically by Vercel when you create a KV store and link it to the projec
 
 ## Admin Panel Flow
 
-1. Visit `https://wallet-tau-green.vercel.app/admin.html`
+1. Visit `https://passes.treasuryaesthetics.ca/admin.html`
 2. Enter `CRON_SECRET` value as access key
 3. Choose lookback window (default 30 days)
 4. Click **Find Clients** → see all Phorest clients with status:
