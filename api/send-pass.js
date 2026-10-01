@@ -78,8 +78,13 @@ function buildEmailHtml(firstName, fullName, tier = "standard", clientId = null)
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const secret = process.env.CRON_SECRET;
-  if (!secret || req.headers["authorization"] !== `Bearer ${secret}`) {
+  // Two bearers are accepted: CRON_SECRET (the admin panel's access key) and
+  // WALLET_API_SECRET — a dedicated key for the treasury-agent staff chat's
+  // "Wallet pass" button, so the agent never needs to hold this project's
+  // admin key.
+  const auth = req.headers["authorization"] ?? "";
+  const accepted = [process.env.CRON_SECRET, process.env.WALLET_API_SECRET].filter(Boolean);
+  if (!accepted.length || !accepted.some((s) => auth === `Bearer ${s}`)) {
     return res.status(403).json({ error: "Not authorized" });
   }
 

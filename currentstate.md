@@ -135,6 +135,7 @@ Set automatically by Vercel when you create a KV store and link it to the projec
 | `CRON_SECRET` | Password for admin panel access key field + cron auth header |
 | `PASS_BASE_URL` | Production URL, e.g. `https://passes.treasuryaesthetics.ca` |
 | `PASS_TARGET_URL` | FALLBACK URL encoded in QR code when no clientId / no `PASS_LINK_SECRET` |
+| `WALLET_API_SECRET` | Dedicated bearer accepted by `api/send-pass.js` alongside `CRON_SECRET` — set to the SAME value as `WALLET_API_SECRET` on the treasury-agent project (its staff chat sends passes through this endpoint). |
 | `PASS_LINK_SECRET` | Shared secret with the treasury-agent project (SAME value in both). When set, passes generated with a clientId encode a permanent per-client plan pointer `PLANS_BASE_URL/w/<HMAC(secret, clientId)>` in the QR — treasury-agent 302s it to the client's current treatment-plan page (`lib/plan-link.js`; algorithm pinned by treasury-agent's tests). |
 | `PLANS_BASE_URL` | Treatment-plans host, default `https://plans.treasuryaesthetics.ca` |
 
