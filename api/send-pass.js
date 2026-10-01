@@ -3,7 +3,7 @@
 // Email contains an "Add to Apple Wallet" button linking to the pass landing page.
 // No .pkpass file attachment — keeps email clean and avoids spam-filter triggers.
 // POST body: { clients: [{ id, firstName, lastName, email, membershipTier?, targetUrl? }] }
-//   targetUrl (optional, https only) — explicit QR destination for this
+//   targetUrl (optional, http(s) only) — explicit QR destination for this
 //   client's pass, e.g. their Phorest loyalty-program link. Without it the
 //   pass falls back to the plan pointer / PASS_TARGET_URL.
 
@@ -104,8 +104,8 @@ export default async function handler(req, res) {
       results.errors.push({ id, name: `${firstName} ${lastName}`.trim(), error: "No email address" });
       continue;
     }
-    if (targetUrl != null && !(typeof targetUrl === "string" && /^https:\/\/\S+$/i.test(targetUrl.trim()) && targetUrl.length <= 600)) {
-      results.errors.push({ id, name: `${firstName} ${lastName}`.trim(), error: "targetUrl must be an https:// link" });
+    if (targetUrl != null && !(typeof targetUrl === "string" && /^https?:\/\/\S+$/i.test(targetUrl.trim()) && targetUrl.length <= 600)) {
+      results.errors.push({ id, name: `${firstName} ${lastName}`.trim(), error: "targetUrl must be an http(s):// link" });
       continue;
     }
 
