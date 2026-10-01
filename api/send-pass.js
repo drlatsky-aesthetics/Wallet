@@ -2,7 +2,10 @@
 // Sends wallet pass emails to clients chosen in the admin panel.
 // Email contains an "Add to Apple Wallet" button linking to the pass landing page.
 // No .pkpass file attachment — keeps email clean and avoids spam-filter triggers.
-// POST body: { clients: [{ id, firstName, lastName, email }] }
+// POST body: { clients: [{ id, firstName, lastName, email, membershipTier?, targetUrl? }] }
+//   targetUrl (optional, https only) — explicit QR destination for this
+//   client's pass, e.g. their Phorest loyalty-program link. Without it the
+//   pass falls back to the plan pointer / PASS_TARGET_URL.
 
 import { markSent }           from "../lib/kv.js";
 import { generatePassBuffer } from "../lib/generate-pass-buffer.js";
@@ -96,9 +99,13 @@ export default async function handler(req, res) {
   const results = { sent: [], errors: [] };
 
   for (const client of clients) {
-    const { id, firstName, lastName, email, membershipTier = "standard" } = client;
+    const { id, firstName, lastName, email, membershipTier = "standard", targetUrl } = client;
     if (!email) {
       results.errors.push({ id, name: `${firstName} ${lastName}`.trim(), error: "No email address" });
+      continue;
+    }
+    if (targetUrl != null && !(typeof targetUrl === "string" && /^https:\/\/\S+$/i.test(targetUrl.trim()) && targetUrl.length <= 600)) {
+      results.errors.push({ id, name: `${firstName} ${lastName}`.trim(), error: "targetUrl must be an https:// link" });
       continue;
     }
 
@@ -107,7 +114,7 @@ export default async function handler(req, res) {
     try {
       // Generate the signed .pkpass — attached silently so iOS Mail shows
       // its native "Add to Apple Wallet" banner without cluttering the email UI.
-      const passBuffer = await generatePassBuffer(name, membershipTier, id);
+      const passBuffer = await generatePassBuffer(name, membershipTier, id, { targetUrl });
 
       const res2 = await fetch("https://api.resend.com/emails", {
         method:  "POST",

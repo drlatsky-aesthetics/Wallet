@@ -53,7 +53,7 @@ api/sync-passes.js  ──→  Resend (email)  ──→  Patient inbox
 | `api/generate-pass.js` | Signs and streams a `.pkpass` file. Called when patient taps "Add to Apple Wallet". Returns `Content-Type: application/vnd.apple.pkpass` with no `Content-Disposition` so iOS routes it to Wallet. |
 | `api/sync-passes.js` | Polls Phorest for updated clients, emails passes via Resend. Protected by `CRON_SECRET` (manual) or `SYNC_ENABLED=true` (cron). Cron is currently **disabled** in `vercel.json`. |
 | `api/list-clients.js` | Read-only: fetches clients from Phorest + their KV sent-status. Used by admin panel "Find Clients" button. No emails sent. |
-| `api/send-pass.js` | Sends passes to a specific POST-supplied list of clients. Used by admin panel "Send Passes" button. Marks each sent ID in KV. |
+| `api/send-pass.js` | Sends passes to a specific POST-supplied list of clients. Used by admin panel "Send Passes" button and the treasury-agent staff chat. Each client may carry `targetUrl` (https) — the explicit QR destination, e.g. the client's Phorest loyalty-program link; it wins over the plan pointer and `PASS_TARGET_URL`. Marks each sent ID in KV. |
 
 ### Library
 
